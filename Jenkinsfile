@@ -1,9 +1,18 @@
 pipeline {
     agent any
+
+    tools {
+        maven 'maven'
+        jdk 'openjdk-11-jdk'
+    }
+
+
     stages {
         stage('Compile') {
             steps {
-                echo 'Hello world!'
+                withMaven(jdk: 'openjdk-11-jdk', maven: 'maven', mavenSettingsConfig: 'ad06f4c7-8d61-4456-b8db-c6ea6c3fe404') {
+                    // some block
+                }
             }
         }
 
