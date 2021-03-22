@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
  */
 public class LongestWord implements IChallange {
 
-    private static Pattern WORD_PATTERN = Pattern.compile("[a-zA-Z]+");
+    private static final Pattern WORD_PATTERN = Pattern.compile("[a-zA-Z]+");
 
     @Override
     public Object execute(Object obj) {
