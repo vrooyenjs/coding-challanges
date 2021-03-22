@@ -6,8 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Have the function FindIntersection(strArr) read the array of
@@ -35,12 +34,11 @@ import java.util.List;
 public class FindIntersection implements IChallange {
     @Override
     public Object execute(Object obj) {
-        String [] arr = (String[]) obj;
-        return findIntersection (arr);
+        String[] arr = (String[]) obj;
+        return findIntersection(arr);
     }
 
     protected String findIntersection(String[] arr) {
-
         // Split both elements into their own arrays and remove all white spaces.
         String[] index_1 = arr[0].split(",");
         trimStringsInArray(index_1);
@@ -48,14 +46,15 @@ public class FindIntersection implements IChallange {
         String[] index_2 = arr[1].split(",");
         trimStringsInArray(index_2);
 
+        // If we conver the first list to a hash set, we can search for collisions (O(n)) instead of going through both arrays O(n^2)
+        Set<String> set_1 = new HashSet<String>(Arrays.asList(index_1));
+
         List<String> result = new LinkedList<>();
 
         // We now compare the two arrays to find intersections
-        for (int i = 0; i < index_1.length; i++) {
-            for (int k = 0; k < index_2.length; k++) {
-                if (index_1[i].contentEquals(index_2[k])) {
-                    result.add(index_1[i]);
-                }
+        for (int k = 0; k < index_2.length; k++) {
+            if (set_1.contains(index_2[k])) {
+                result.add(index_2[k]);
             }
         }
 
