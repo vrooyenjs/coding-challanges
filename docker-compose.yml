@@ -2,12 +2,15 @@
 version: '3.8'
 services:
 
-#  # Jenkins Build Server
+  # Jenkins Build Server
+  # sonarqube key: 43eaac4a2006cade0d9db6051667ee8ef0240bde
   jenkins:
-    image: jenkins/jenkins:lts
+    image: jenkins/jenkins:jdk11
     privileged: true
     user: root
     restart: always
+    networks:
+      - cicd
     ports:
      - 8080:8080
     container_name: jenkins
@@ -15,7 +18,6 @@ services:
       - JAVA_OPTS=-Xmx1024m -Xms1024m
     volumes:
       - /data/jenkins:/var/jenkins_home
-      - /usr/lib/jvm/java-11-openjdk/:/usr/lib/jvm/java-11-openjdk/
 
 
   # Artifactory Community Edition
@@ -25,6 +27,8 @@ services:
     container_name: artifactory
     privileged: true
     user: root
+    networks:
+      - cicd
     ports:
       - 8082:8082 # JF_ROUTER_ENTRYPOINTS_EXTERNALPORT
       - 8081:8081 # for artifactory communication
@@ -51,7 +55,7 @@ services:
     ports:
       - 9001:9000
     networks:
-      - sonarnet
+      - cicd
     environment:
       SONAR_JDBC_URL: jdbc:postgresql://postgres:5432/sonar
       SONAR_JDBC_USERNAME: sonar
@@ -66,7 +70,7 @@ services:
     image: postgres
     container_name: postgres
     networks:
-      - sonarnet
+      - cicd
     environment:
       POSTGRES_USER: sonar
       POSTGRES_PASSWORD: sonar
@@ -76,5 +80,5 @@ services:
       - /data/postgresql/data:/var/lib/postgresql/data
 
 networks:
-  sonarnet:
+  cicd:
     driver: bridge

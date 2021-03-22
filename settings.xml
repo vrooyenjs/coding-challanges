@@ -22,13 +22,13 @@
                     </snapshots>
                     <id>central</id>
                     <name>maven-repo</name>
-                    <url>http://localhost:8081/artifactory/maven-repo</url>
+                    <url>http://home:8081/artifactory/maven-repo</url>
                 </repository>
                 <repository>
                     <snapshots />
                     <id>snapshots</id>
                     <name>maven-repo</name>
-                    <url>http://localhost:8081/artifactory/maven-repo</url>
+                    <url>http://home:8081/artifactory/maven-repo</url>
                 </repository>
             </repositories>
             <pluginRepositories>
@@ -38,13 +38,13 @@
                     </snapshots>
                     <id>central</id>
                     <name>maven-repo</name>
-                    <url>http://localhost:8081/artifactory/maven-repo</url>
+                    <url>http://home:8081/artifactory/maven-repo</url>
                 </pluginRepository>
                 <pluginRepository>
                     <snapshots />
                     <id>snapshots</id>
                     <name>maven-repo</name>
-                    <url>http://localhost:8081/artifactory/maven-repo</url>
+                    <url>http://home:8081/artifactory/maven-repo</url>
                 </pluginRepository>
             </pluginRepositories>
             <id>artifactory</id>

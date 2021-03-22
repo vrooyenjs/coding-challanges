@@ -1,6 +1,7 @@
 package com.jan.challenges;
 
 import com.jan.interfaces.IChallange;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +19,7 @@ import java.util.regex.Pattern;
  */
 @Slf4j
 @Component
+@NoArgsConstructor
 public class CodelandUserNameValidation implements IChallange {
 
     /**
@@ -29,9 +31,6 @@ public class CodelandUserNameValidation implements IChallange {
      *
      */
     private static final Pattern PATTERN = Pattern.compile("^[a-zA-Z]\\w{2,23}[a-zA-Z0-9]$");
-
-    public CodelandUserNameValidation() {
-    }
 
     @Override
     public Object execute(Object obj) {
