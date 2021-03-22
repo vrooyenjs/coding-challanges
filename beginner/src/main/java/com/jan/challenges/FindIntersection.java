@@ -49,12 +49,12 @@ public class FindIntersection implements IChallange {
             trimStringsInArray(index2);
 
             // If we conver the first list to a hash set, we can search for collisions (O(n)) instead of going through both arrays O(n^2)
-            Set<String> set_1 = new HashSet<>(Arrays.asList(index1));
+            Set<String> setOfFirstIndex = new HashSet<>(Arrays.asList(index1));
 
 
             // We now compare the two arrays to find intersections
             for (String str : index2) {
-                if (set_1.contains(str)) {
+                if (setOfFirstIndex.contains(str)) {
                     result.add(str);
                 }
             }
