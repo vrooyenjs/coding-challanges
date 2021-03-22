@@ -16,8 +16,10 @@ services:
     container_name: jenkins
     environment:
       - JAVA_OPTS=-Xmx1024m -Xms1024m
+      - TZ='Africa/Johannesburg'
     volumes:
       - /data/jenkins:/var/jenkins_home
+      - /etc/localtime:/etc/localtime:ro
 
 
   # Artifactory Community Edition
