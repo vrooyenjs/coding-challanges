@@ -12,8 +12,7 @@ import static org.mockito.Mockito.when;
 
 
 public class ExecutorTest {
-    @Autowired
-    @InjectMocks
+
     IChallange codelandUserNameValidation;
 
     @BeforeEach
