@@ -10,7 +10,10 @@ pipeline {
         buildDiscarder(logRotator(artifactDaysToKeepStr: '10', artifactNumToKeepStr: '10', daysToKeepStr: '10', numToKeepStr: '10'))
         disableConcurrentBuilds()
         disableResume()
-        pipelineTriggers([pollSCM('H/5 * * * *')]
+    }
+
+    triggers {
+        pollSCM('H/5 * * * *')
     }
 
     stages {
