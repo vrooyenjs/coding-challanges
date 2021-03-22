@@ -60,15 +60,14 @@ public class QuestionsMarks implements IChallange {
                     log.debug("Setting digit 1 to: " + firstDigit);
                 }
 
-                // It's the second of the first pair...
+                // It's the second digit of the first pair...
                 else if (secondDigit < 0) {
                     secondDigit = Character.getNumericValue(c);
                     log.debug("Setting digit 2 to: " + secondDigit);
-
                     log.debug("SUM: " + (firstDigit + secondDigit));
 
                     /*
-                     * No that we have the second digit...if the sum is equal to 10
+                     * Now that we have the second digit...if the sum is equal to 10
                      */
                     if (firstDigit + secondDigit == 10) {
                         /*
@@ -85,7 +84,7 @@ public class QuestionsMarks implements IChallange {
                         }
 
                         /*
-                         * Now we make the first digit equald to the second one, resetting the search.
+                         * And finally, we 'reset' the search by moving the first digit forward and looking for the 'next' second digit.
                          */
                         questionMarkCount = 0;
                         firstDigit = secondDigit;
