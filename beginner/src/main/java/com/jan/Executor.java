@@ -12,7 +12,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class Executor implements CommandLineRunner {
 
-    IChallange codelandUserNameValidation;
+    final IChallange codelandUserNameValidation;
 
     @Autowired
     public Executor(IChallange codelandUserNameValidation) {
