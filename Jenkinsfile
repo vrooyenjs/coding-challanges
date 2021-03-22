@@ -11,7 +11,7 @@ pipeline {
         stage('Compile') {
             steps {
                 withMaven(jdk: 'openjdk-11-jdk', maven: 'maven', mavenSettingsConfig: 'ad06f4c7-8d61-4456-b8db-c6ea6c3fe404') {
-                    // some block
+                     sh "mvn clean install"
                 }
             }
         }
