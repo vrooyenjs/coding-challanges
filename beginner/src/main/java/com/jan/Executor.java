@@ -12,9 +12,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class Executor implements CommandLineRunner {
 
+    IChallange codelandUserNameValidation;
 
     @Autowired
-    IChallange codelandUserNameValidation;
+    public Executor(IChallange codelandUserNameValidation) {
+        this.codelandUserNameValidation = codelandUserNameValidation;
+
+    }
 
     public static void main(String[] args) {
         SpringApplication app = new SpringApplication(Executor.class);
@@ -22,7 +26,7 @@ public class Executor implements CommandLineRunner {
     }
 
     @Override
-    public void run(String... args){
+    public void run(String... args) {
         //check if user passes any argument
         codelandUserNameValidation.execute("Testing");
     }
