@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class FindIntersectionTest {
+class FindIntersectionTest {
 
     @Test
     void testFindIntersection_valid_test1(){

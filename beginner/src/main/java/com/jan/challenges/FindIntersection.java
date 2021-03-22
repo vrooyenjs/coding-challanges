@@ -42,18 +42,18 @@ public class FindIntersection implements IChallange {
         List<String> result = new LinkedList<>();
         if (arr.length == 2 && arr[0].length() > 0 && arr[1].length() > 0) {
             // Split both elements into their own arrays and remove all white spaces.
-            String[] index_1 = arr[0].split(",");
-            trimStringsInArray(index_1);
+            String[] index1 = arr[0].split(",");
+            trimStringsInArray(index1);
 
-            String[] index_2 = arr[1].split(",");
-            trimStringsInArray(index_2);
+            String[] index2 = arr[1].split(",");
+            trimStringsInArray(index2);
 
             // If we conver the first list to a hash set, we can search for collisions (O(n)) instead of going through both arrays O(n^2)
-            Set<String> set_1 = new HashSet<>(Arrays.asList(index_1));
+            Set<String> set_1 = new HashSet<>(Arrays.asList(index1));
 
 
             // We now compare the two arrays to find intersections
-            for (String str : index_2) {
+            for (String str : index2) {
                 if (set_1.contains(str)) {
                     result.add(str);
                 }
