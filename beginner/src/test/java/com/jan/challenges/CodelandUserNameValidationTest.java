@@ -1,6 +1,5 @@
-package com.jan.challanges;
+package com.jan.challenges;
 
-import com.jan.challenges.CodelandUserNameValidation;
 import com.jan.interfaces.IChallange;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;

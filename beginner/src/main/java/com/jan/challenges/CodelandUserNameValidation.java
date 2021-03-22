@@ -16,6 +16,12 @@ import java.util.regex.Pattern;
  * 4. It cannot end with an underscore character.
  * <p>
  * If the username is valid then your program should return the string true, otherwise return the string false.
+ *
+ * Input: "aa_"
+ * Output: false
+ *
+ * Input: "u__hello_world123"
+ * Output: true
  */
 @Slf4j
 @Component
