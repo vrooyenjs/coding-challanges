@@ -94,7 +94,6 @@ public class QuestionsMarks implements IChallange {
                     }
                 }
             }
-
         }
 
         return validString;
