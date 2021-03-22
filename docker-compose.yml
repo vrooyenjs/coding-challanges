@@ -1,0 +1,79 @@
+# docker-compose.yml
+version: '3.8'
+services:
+
+#  # Jenkins Build Server
+  jenkins:
+    image: jenkins/jenkins:lts
+    privileged: true
+    user: root
+    restart: always
+    ports:
+     - 8080:8080
+    container_name: jenkins
+    environment:
+      - JAVA_OPTS=-Xmx1024m -Xms1024m
+    volumes:
+      - /data/jenkins:/var/jenkins_home
+
+
+  # Artifactory Community Edition
+  # admin / 1bD33585-b761-4635-9b8A-eb97f0c0bd98
+  artifactory:
+    image: docker.bintray.io/jfrog/artifactory-oss:7.16.3
+    container_name: artifactory
+    privileged: true
+    user: root
+    ports:
+      - 8082:8082 # JF_ROUTER_ENTRYPOINTS_EXTERNALPORT
+      - 8081:8081 # for artifactory communication
+      - 8046:8046 # for artifactory communication
+      - 9000:9000 # for artifactory communication
+    volumes:
+      - /data/artifactory:/var/opt/jfrog/artifactory
+    environment:
+      # Add extra Java options by uncommenting the following line
+      - EXTRA_JAVA_OPTIONS=-Xms512m -Xmx4g
+    restart: always
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 32000
+        hard: 40000
+
+  sonarqube:
+    # admin / 1bD33585-b761-4635-9b8A-eb97f0c0bd98
+    image: sonarqube:community
+    container_name: sonarqube
+    depends_on:
+      - postgres
+    ports:
+      - 9001:9000
+    networks:
+      - sonarnet
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://postgres:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+    volumes:
+      - /data/sonarqube/data:/opt/sonarqube/data
+      - /data/sonarqube/extensions:/opt/sonarqube/extensions
+      - /data/sonarqube/logs:/opt/sonarqube/logs
+      - /data/sonarqube/temp:/opt/sonarqube/temp
+
+  postgres:
+    image: postgres
+    container_name: postgres
+    networks:
+      - sonarnet
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+    volumes:
+      - /data/postgresql/postgresql:/var/lib/postgresql
+      # This needs explicit mapping due to https://github.com/docker-library/postgres/blob/4e48e3228a30763913ece952c611e5e9b95c8759/Dockerfile.template#L52
+      - /data/postgresql/data:/var/lib/postgresql/data
+
+networks:
+  sonarnet:
+    driver: bridge

@@ -1,0 +1,11 @@
+# IntelliJ Files
+.idea/
+*.iml
+
+# Ignore all logs files
+logs/
+*.log
+
+
+# Ignore maven files
+target/
