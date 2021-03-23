@@ -28,7 +28,8 @@ class ExecutorTest {
 
     @Test
     void testRun() {
-        new Executor(codelandUserNameValidation).run();
+        Executor ex = new Executor();
+        ex.setCodelandUserNameValidation(codelandUserNameValidation);
         assertTrue(true);
     }
 }
