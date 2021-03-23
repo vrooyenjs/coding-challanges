@@ -26,11 +26,11 @@
         </encoder>
     </appender>
 
-    <logger name="com.jan" level="debug" additivity="false">
+    <logger name="com.jan" level="info" additivity="false">
         <appender-ref ref="FILE-ROLLING"/>
     </logger>
 
-    <root level="INFO">
+    <root level="info">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="FILE-ROLLING"/>
     </root>
