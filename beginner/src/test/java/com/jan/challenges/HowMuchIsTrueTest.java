@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Return 0 if given an empty array.
  * All array items are of the type bool (true or false).
  */
-public class HowMuchIsTrueTest {
+class HowMuchIsTrueTest {
 
     IChallange howMuchIsTrue = new HowMuchIsTrue();
 
