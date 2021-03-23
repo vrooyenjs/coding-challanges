@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * solutions(1, 0, 1) ➞ 0
  * // x² + 1 = 0 has no real solutions.
  */
-public class QuadraticSolutionsTest  {
+class QuadraticSolutionsTest  {
 
     IChallange quadraticSolutions = new QuadraticSolutions();
 
