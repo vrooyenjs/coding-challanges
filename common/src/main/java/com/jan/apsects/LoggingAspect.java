@@ -15,10 +15,12 @@ public class LoggingAspect {
 
     @Pointcut("@within(org.springframework.stereotype.Component)")
     public void components() {
+        // No method body needed
     }
 
     @Pointcut("execution(* *.execute*(..))")
     public void executeMethod() {
+        // No method body needed
     }
 
     @Around("components() && executeMethod()")
