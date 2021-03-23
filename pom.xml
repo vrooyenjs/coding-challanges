@@ -11,7 +11,7 @@
 
     <groupId>com.spies</groupId>
     <artifactId>CodeChallanges</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>Code Challanges</name>
     <description>Code Challange project</description>
     <packaging>pom</packaging>
@@ -30,6 +30,7 @@
     <modules>
         <module>common</module>
         <module>beginner</module>
+        <module>intermediate</module>
     </modules>
 
     <build>
