@@ -19,14 +19,15 @@ import java.util.concurrent.atomic.AtomicLong;
  * Positive integers larger than 9 which have this property when written in decimal are called cranky.
  * <p>
  * <p>
- * The sum of all cranky integers smaller than 106 is 1778723. What is the sum of all cranky integers smaller than 10^14?
+ * The sum of all cranky integers smaller than 10^6 is 1778723. What is the sum of all cranky integers smaller than 10^14?
  */
 @Slf4j
 @Component
 @NoArgsConstructor
 public class SuperCrankyIntegers implements IChallange {
+    private ExecutorService executor;
 
-    private final ExecutorService executor = Executors.newScheduledThreadPool(4);
+    private static final long SEGMENT_SIZE = 100000000L;
 
     @Override
     public Object execute(Object obj) {
@@ -40,26 +41,25 @@ public class SuperCrankyIntegers implements IChallange {
     }
 
     private long crankyInteger(long num) throws ExecutionException, InterruptedException {
-        long crankySum = 0;
-
+        executor = Executors.newFixedThreadPool(4);
+        long crankySum = 0L;
         List<Future<Long>> taskList = new LinkedList<>();
 
-        long start = System.currentTimeMillis();
-        long startTimer = System.currentTimeMillis();
+        long segmentSize = 0L;
+        long blockStart = 0L;
+        while(blockStart < num){
 
-        for (long i = 10; i < num; i++) {
-            crankySum += countCompleted(taskList);
-
-            if (System.currentTimeMillis() - startTimer > 1000) {
-                long processed = COUNT.get();
-                long timeSinceStart = System.currentTimeMillis() - start;
-
-                log.info("Processed: {} --> {} tps", processed, (processed / TimeUnit.SECONDS.convert(timeSinceStart, TimeUnit.MILLISECONDS)));
-
-                startTimer = System.currentTimeMillis();
+            // If the full segment goes over the num, we trim it down
+            if (blockStart + SEGMENT_SIZE > num){
+                segmentSize = num - blockStart;
+            }else{
+                segmentSize = SEGMENT_SIZE;
             }
+            log.info("Processing block: {}/{} -- size({})", blockStart, num, segmentSize);
 
-            taskList.add(calculate(i));
+            taskList.add(scheduleBlock(blockStart, segmentSize));
+            blockStart += segmentSize;
+            crankySum += countCompleted(taskList);
         }
         executor.shutdown();
 
@@ -80,6 +80,17 @@ public class SuperCrankyIntegers implements IChallange {
         return crankySum;
     }
 
+    private Future<Long> scheduleBlock (long blockStart, long segmentSize){
+        return executor.submit(() -> {
+            long value = 0L;
+            for (long i = blockStart ; i < blockStart + segmentSize ; i ++) {
+                value += isCranky(i);
+            }
+            return value;
+        });
+    }
+
+
     private long countCompleted(List<Future<Long>> taskList) throws ExecutionException, InterruptedException {
         List<Future<Long>> completedList = new LinkedList<>();
         long sum = 0L;
@@ -91,16 +102,6 @@ public class SuperCrankyIntegers implements IChallange {
         }
         taskList.removeAll(completedList);
         return sum;
-    }
-
-    private static AtomicLong COUNT = new AtomicLong();
-
-    private Future<Long> calculate(long input) {
-        return executor.submit(() -> {
-            long value = isCranky(input);
-            COUNT.getAndIncrement();
-            return value;
-        });
     }
 
     private long isCranky(long num) {
