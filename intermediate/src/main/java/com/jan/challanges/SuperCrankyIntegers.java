@@ -42,7 +42,7 @@ public class SuperCrankyIntegers implements IChallange {
     }
 
     private long crankyInteger(long num) throws ExecutionException, InterruptedException {
-        executor = Executors.newFixedThreadPool(5);
+        executor = Executors.newFixedThreadPool(8);
         long crankySum = 0L;
         List<Future<Long>> taskList = new LinkedList<>();
 
