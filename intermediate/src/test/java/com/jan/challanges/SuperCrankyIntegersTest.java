@@ -13,61 +13,64 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * The sum of all cranky integers smaller than 10^6 is 1778723. What is the sum of all cranky integers smaller than 10^14?
  */
 class SuperCrankyIntegersTest {
+    IChallange superCrankyIntegers = new SuperCrankyIntegers();
 
 
     @Test
+    void testExecute()  {
+        assertEquals(0L, (long) superCrankyIntegers.execute(100L));
+        assertEquals(1858L, (long) superCrankyIntegers.execute(1000L));
+        assertEquals(1858L, (long) superCrankyIntegers.execute(10000L));
+        assertEquals(1858L, (long) superCrankyIntegers.execute(100000L));
+        assertEquals(1778723L, (long) superCrankyIntegers.execute(1000000L));
+        assertEquals(5303474L, (long) superCrankyIntegers.execute(10000000L));
+//        assertEquals(139852339L, (long) superCrankyIntegers.execute(100000000L));
+    }
+
+//    @Test
     void testExecute_100l()  {
-        IChallange superCrankyIntegers = new SuperCrankyIntegers();
         assertEquals(0L, (long) superCrankyIntegers.execute(100L));
     }
 
-    @Test
+//    @Test
     void testExecute_1000l()  {
-        IChallange superCrankyIntegers = new SuperCrankyIntegers();
         assertEquals(1858L, (long) superCrankyIntegers.execute(1000L));
     }
 
-    @Test
+//    @Test
     void testExecute_10000l()  {
-        IChallange superCrankyIntegers = new SuperCrankyIntegers();
         assertEquals(1858L, (long) superCrankyIntegers.execute(10000L));
     }
 
-    @Test
+//    @Test
     void testExecute_100000l()  {
-        IChallange superCrankyIntegers = new SuperCrankyIntegers();
         assertEquals(1858L, (long) superCrankyIntegers.execute(100000L));
     }
 
 //    @Test
     void testExecute_1000000l()  {
-        IChallange superCrankyIntegers = new SuperCrankyIntegers();
         assertEquals(1778723L, (long) superCrankyIntegers.execute(1000000L));
     }
 
 //    @Test
     void testExecute_10000000l()  {
-        IChallange superCrankyIntegers = new SuperCrankyIntegers();
         assertEquals(5303474L, (long) superCrankyIntegers.execute(10000000L));
     }
 
 
 //    @Test
     void testExecute_100000000l()  {
-        IChallange superCrankyIntegers = new SuperCrankyIntegers();
         assertEquals(139852339L, (long) superCrankyIntegers.execute(100000000L));
     }
 
 
 //    @Test
     void testExecute_1000000000l()  {
-        IChallange superCrankyIntegers = new SuperCrankyIntegers();
         assertEquals(598515851L, (long) superCrankyIntegers.execute(1000000000L));
     }
 
 //    @Test
     void testExecute_100000000000000l() {
-        IChallange superCrankyIntegers = new SuperCrankyIntegers();
         assertEquals(1778723L, (long) superCrankyIntegers.execute(100000000000000L));
     }
 }

@@ -5,10 +5,14 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * The integer 351 has the property that 3 x 51 = 153, the digit-reverse of 351.
@@ -30,6 +34,7 @@ public class SuperCrankyIntegers implements IChallange {
     private static final long SEGMENT_SIZE = 10000000L;
     private static final long SEGMENT_BLOCKS = 1000000L;
 
+
     @Override
     public Object execute(Object obj) {
         try {
@@ -41,8 +46,23 @@ public class SuperCrankyIntegers implements IChallange {
         return 0L;
     }
 
+    private void initCache(long num) {
+        /*
+         * Init cache
+         */
+        long start = System.currentTimeMillis();
+        log.info("Starting cache load...");
+        for (long i = 0; i < num; i++) {
+            getLongFromCache(String.valueOf(i));
+        }
+        log.info("Starting cache load of {} entries in {} ms", num, (System.currentTimeMillis() - start));
+    }
+
     private long crankyInteger(long num) throws ExecutionException, InterruptedException {
-        executor = Executors.newFixedThreadPool(8);
+//        initCache(num);
+
+
+        executor = Executors.newFixedThreadPool(6);
         long crankySum = 0L;
         List<Future<Long>> taskList = new LinkedList<>();
 
@@ -67,7 +87,7 @@ public class SuperCrankyIntegers implements IChallange {
             } else {
                 blockSize = segmentSize;
             }
-            log.info("Processing block: {}/{} -- size({})", blockStart, num, blockSize);
+//            log.info("Processing block: {}/{} -- size({})", blockStart, num, blockSize);
 
             taskList.add(scheduleBlock(blockStart, blockSize));
             blockStart += blockSize;
@@ -118,14 +138,12 @@ public class SuperCrankyIntegers implements IChallange {
 
     private long isCranky(long num) {
         String intValue = String.valueOf(num);
-        long reversedValue = reversedNumber(num);
+        long reversedValue = getLongFromCache(new StringBuilder(intValue).reverse().toString());
 
-        // first digit is always part of the first part
-        // and the last digit is never part of the first part.
         for (int i = 1; i < intValue.length(); i++) {
-            long firstPart = Long.parseLong(intValue.substring(0, i));
-            long secondPart = Long.parseLong(intValue.substring(i));
 
+            long firstPart = getLongFromCache(intValue.substring(0, i));
+            long secondPart = getLongFromCache(intValue.substring(i));
 
             if ((firstPart * secondPart) == reversedValue) {
                 return num;
@@ -135,13 +153,18 @@ public class SuperCrankyIntegers implements IChallange {
         return 0;
     }
 
-    private long reversedNumber(long num) {
-        long reversed = 0;
-        for (; num != 0; num /= 10) {
-            long digit = num % 10;
-            reversed = reversed * 10 + digit;
+    private static final Map<String, Long> LONG_CACHE = new HashMap<>();
+
+    private long getLongFromCache(String longAsString) {
+        Long longValue = LONG_CACHE.get(longAsString);
+
+        if (longValue == null) {
+            longValue = Long.parseLong(longAsString);
+            LONG_CACHE.put(longAsString, longValue);
         }
-        return reversed;
+        return longValue;
     }
+
+
 }
 
