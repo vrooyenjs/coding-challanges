@@ -70,15 +70,10 @@ public class SuperCrankyIntegers implements IChallange {
          * The segments are partitioned by either the number of partitions or
          * standard block size....whichever one is larger.
          */
-        long segmentSize = 0L;
-        if (num / SEGMENT_BLOCKS > SEGMENT_SIZE) {
-            segmentSize = num / SEGMENT_BLOCKS;
-        } else {
-            segmentSize = SEGMENT_SIZE;
-        }
+        long segmentSize = Math.max(num / SEGMENT_BLOCKS, SEGMENT_SIZE);
 
         long blockStart = 0L;
-        long blockSize = 0L;
+        long blockSize;
         while (blockStart < num) {
 
             // If the full segment goes over the num, we trim it down
@@ -144,7 +139,6 @@ public class SuperCrankyIntegers implements IChallange {
 
             long firstPart = getLongFromCache(intValue.substring(0, i));
             long secondPart = getLongFromCache(intValue.substring(i));
-
             if ((firstPart * secondPart) == reversedValue) {
                 return num;
             }
@@ -153,8 +147,8 @@ public class SuperCrankyIntegers implements IChallange {
         return 0;
     }
 
-    private static final Map<String, Long> LONG_CACHE = new HashMap<>();
 
+    private static final Map<String, Long> LONG_CACHE = new HashMap<>();
     private long getLongFromCache(String longAsString) {
         Long longValue = LONG_CACHE.get(longAsString);
 
