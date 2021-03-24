@@ -27,7 +27,8 @@ import java.util.concurrent.atomic.AtomicLong;
 public class SuperCrankyIntegers implements IChallange {
     private ExecutorService executor;
 
-    private static final long SEGMENT_SIZE = 100000000L;
+    private static final long SEGMENT_SIZE = 10000000L;
+    private static final long SEGMENT_BLOCKS = 1000000L;
 
     @Override
     public Object execute(Object obj) {
@@ -41,24 +42,35 @@ public class SuperCrankyIntegers implements IChallange {
     }
 
     private long crankyInteger(long num) throws ExecutionException, InterruptedException {
-        executor = Executors.newFixedThreadPool(4);
+        executor = Executors.newFixedThreadPool(5);
         long crankySum = 0L;
         List<Future<Long>> taskList = new LinkedList<>();
 
+        /*
+         * The segments are partitioned by either the number of partitions or
+         * standard block size....whichever one is larger.
+         */
         long segmentSize = 0L;
+        if (num / SEGMENT_BLOCKS > SEGMENT_SIZE) {
+            segmentSize = num / SEGMENT_BLOCKS;
+        } else {
+            segmentSize = SEGMENT_SIZE;
+        }
+
         long blockStart = 0L;
-        while(blockStart < num){
+        long blockSize = 0L;
+        while (blockStart < num) {
 
             // If the full segment goes over the num, we trim it down
-            if (blockStart + SEGMENT_SIZE > num){
-                segmentSize = num - blockStart;
-            }else{
-                segmentSize = SEGMENT_SIZE;
+            if (blockStart + segmentSize > num) {
+                blockSize = num - blockStart;
+            } else {
+                blockSize = segmentSize;
             }
-            log.info("Processing block: {}/{} -- size({})", blockStart, num, segmentSize);
+            log.info("Processing block: {}/{} -- size({})", blockStart, num, blockSize);
 
-            taskList.add(scheduleBlock(blockStart, segmentSize));
-            blockStart += segmentSize;
+            taskList.add(scheduleBlock(blockStart, blockSize));
+            blockStart += blockSize;
             crankySum += countCompleted(taskList);
         }
         executor.shutdown();
@@ -80,10 +92,10 @@ public class SuperCrankyIntegers implements IChallange {
         return crankySum;
     }
 
-    private Future<Long> scheduleBlock (long blockStart, long segmentSize){
+    private Future<Long> scheduleBlock(long blockStart, long segmentSize) {
         return executor.submit(() -> {
             long value = 0L;
-            for (long i = blockStart ; i < blockStart + segmentSize ; i ++) {
+            for (long i = blockStart; i < blockStart + segmentSize; i++) {
                 value += isCranky(i);
             }
             return value;
