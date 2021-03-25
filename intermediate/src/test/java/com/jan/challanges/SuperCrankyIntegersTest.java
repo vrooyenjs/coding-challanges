@@ -1,7 +1,15 @@
 package com.jan.challanges;
 
+
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import com.jan.interfaces.IChallange;
 import org.junit.jupiter.api.Test;
+
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -15,6 +23,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class SuperCrankyIntegersTest {
     IChallange superCrankyIntegers = new SuperCrankyIntegers();
 
+    @Test
+    void testExecute_for_graph() throws IOException {
+
+        BufferedWriter writer = Files.newBufferedWriter(Paths.get("metrics.csv"));
+        CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT.withHeader("Number", "TimeTaken"));
+
+
+        for (long i = 10L; i < 10000; i++) {
+            long start = System.currentTimeMillis();
+            superCrankyIntegers.execute(i);
+            long finish = (System.currentTimeMillis() - start);
+
+            csvPrinter.printRecord(String.valueOf(i), String.valueOf(finish));
+        }
+        csvPrinter.flush();
+    }
 
     //    @Test
     void testExecute() {
