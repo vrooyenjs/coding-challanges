@@ -1,16 +1,18 @@
 package com.jan.challanges;
 
 import com.jan.interfaces.IChallange;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The integer 351 has the property that 3 x 51 = 153, the digit-reverse of 351.
@@ -28,8 +30,19 @@ import java.util.concurrent.atomic.AtomicLong;
 @NoArgsConstructor
 public class SuperCrankyIntegers implements IChallange {
 
+    // Controls into how many segments the initial blocks are split
     private static final long BLOCK_DIVISION_SEGMENT_SIZE = 10000L;
-    private static final int THREAD_COUNT = 6;
+
+    // How often the task list needs to be scanned and completed items counted and removed to keep memory down.
+    private static final long TASK_LIST_CLEANUP_THRESHOLD = 1000000L;
+
+    // How many parallel tasks can run at one time.
+    private static final int THREAD_COUNT = 16;
+
+    // Task list
+    private final List<Future<Long>> taskList = new ArrayList<>((int) TASK_LIST_CLEANUP_THRESHOLD);
+
+    private final ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT);
 
 
     @Override
@@ -46,9 +59,7 @@ public class SuperCrankyIntegers implements IChallange {
 
     private long crankyInteger(long num) throws ExecutionException, InterruptedException {
 
-        ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT);
         long crankySum = 0L;
-        List<Future<Long>> taskList = new LinkedList<>();
 
         /*
          * Determine Segments
@@ -65,26 +76,19 @@ public class SuperCrankyIntegers implements IChallange {
          * standard block size....whichever one is larger.
          */
         long blockStart = 0L;
-        long blockSize;
+
         while (blockStart < num) {
 
-            // If the full segment goes over the num, we trim it down
-            if (blockStart + segmentSize > num) {
-                blockSize = num - blockStart;
-            } else {
-                blockSize = segmentSize;
-            }
+            // get the next block size
+            long blockSize = getBlockSize(num, blockStart, segmentSize);
 
-            taskList.add(executor.submit(new CrankyCallable(blockStart, blockSize)));
+            scheduleTask(blockStart, blockSize);
             blockStart += blockSize;
 
-            // we maar wait for the task list to finish processing each mod 10 items
-            if (taskList.size() > 0 && taskList.size() % segmentSize == 0) {
-//                log.info("Processing block: {}/{} -- {}%", blockStart, num, ((double) blockStart / (double) num * 100.00));
-                crankySum += countCompleted(taskList);
-            }
+            crankySum += countCompleted();
+
+
         }
-        executor.shutdown();
 
         int completedTasks = 0;
         while (completedTasks < taskList.size()) {
@@ -103,8 +107,25 @@ public class SuperCrankyIntegers implements IChallange {
         return crankySum;
     }
 
+    private void scheduleTask(long blockStart, long blockSize) throws InterruptedException {
+        taskList.add(executor.submit(new CrankyCallable(blockStart, blockSize)));
+    }
 
-    private long countCompleted(List<Future<Long>> taskList) throws ExecutionException, InterruptedException {
+    private long getBlockSize(long num, long blockStart, long segmentSize) {
+        // If the full segment goes over the num, we trim it down
+        if (blockStart + segmentSize > num) {
+            return num - blockStart;
+        } else {
+            return segmentSize;
+        }
+    }
+
+
+    private long countCompleted() throws ExecutionException, InterruptedException {
+        if (taskList.size() < TASK_LIST_CLEANUP_THRESHOLD) {
+            return 0L;
+        }
+
         List<Future<Long>> completedList = new LinkedList<>();
         long sum = 0L;
 
@@ -127,8 +148,6 @@ public class SuperCrankyIntegers implements IChallange {
 @Getter
 @Setter
 class CrankyCallable implements Callable<Long> {
-
-
     private static Long[] DIGIT_LOOKUP;
     private long blockStart;
     private long segmentSize;
@@ -151,20 +170,26 @@ class CrankyCallable implements Callable<Long> {
          ** Preload 0-9 longs
          */
         DIGIT_LOOKUP = new Long[10];
-        for (int i = 0; i < 10 ; i ++) {
-            DIGIT_LOOKUP[i] = (long)i;
+        for (int i = 0; i < 10; i++) {
+            DIGIT_LOOKUP[i] = (long) i;
         }
     }
 
 
     @Override
-    public Long call() {
+    public Long call() throws InterruptedException {
         long value = 0L;
         for (long i = blockStart; i < blockStart + segmentSize; i++) {
             value += isCranky(i);
         }
         return value;
     }
+
+
+//    long firstHalf = 0L;
+//    long secondHalf;
+//    private     long digitToProcess;
+//    private long subtractor = 0L;
 
 
     /**
@@ -176,47 +201,53 @@ class CrankyCallable implements Callable<Long> {
 
         String numAsString = String.valueOf(num);
 
-        long a = 0L;
-        long b;
-
+        long firstHalf = 0L;
+        long secondHalf;
         long digitToProcess;
         long subtractor = 0L;
 
         int reverseIndex = numAsString.length() - 1;
-        for (int i = 0; i < numAsString.length(); i++) {
+        for (long i = 0; i < numAsString.length(); i++) {
 
             // Get the i'th digit.
-//            digitToProcess = Long.parseLong(String.valueOf(numAsString.charAt(i)));
-//            digitToProcess = DIGIT_LOOKUP.get(numAsString.charAt(i));
-            char digit = numAsString.charAt(i);
-            int index = Character.getNumericValue(digit);
-            digitToProcess = DIGIT_LOOKUP[index];
+            digitToProcess = getDigitToProcess(numAsString, i);
 
             // Get the value to subtract from num to get b
             subtractor += (long) (digitToProcess * Math.pow(10, reverseIndex--));
 
+            // get firstHalf
+            firstHalf = findFirstHalf(firstHalf, digitToProcess, i);
 
-            // get a
-            if (a == 0L) {
-                a = (long) (digitToProcess * Math.pow(10, i));
-            } else {
-                a = (long) (a * Math.pow(10, 1)) + digitToProcess;
-            }
+            // get secondHalf
+            secondHalf = getSecondHalf (num, subtractor);
 
-            // get b
-            b = num - subtractor;
-
-            long multiplication = a * b;
-            if (multiplication == reversedValue) {
+            if (firstHalf * secondHalf == reversedValue) {
                 return num;
             }
         }
         return 0;
     }
 
+    private long getDigitToProcess(String numAsString, long i) {
+        char digit = numAsString.charAt((int)i);
+        return DIGIT_LOOKUP[((int)digit) - 48];
+    }
+
+    private long findFirstHalf(long firstHalf, long digitToProcess, long i) {
+        if (firstHalf == 0L) {
+            return (long) (digitToProcess * Math.pow(10, i));
+        } else {
+            return (long) (firstHalf * Math.pow(10, 1)) + digitToProcess;
+        }
+    }
+
+    private long getSecondHalf (long num, long subtractor){
+     return num - subtractor;
+    }
+
     /**
-     * @param value
-     * @return
+     * @param value long value that will be reversed
+     * @return the reversed value that was input as a parameter
      */
     private long getReversedNumber(long value) {
         long reversedValue = 0L;
