@@ -12,7 +12,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The integer 351 has the property that 3 x 51 = 153, the digit-reverse of 351.
@@ -31,13 +30,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class SuperCrankyIntegers implements IChallange {
 
     // Controls into how many segments the initial blocks are split
-    private static final long BLOCK_DIVISION_SEGMENT_SIZE = 10000L;
+    private static final long BLOCK_DIVISION_SEGMENT_SIZE = 100000L;
 
     // How often the task list needs to be scanned and completed items counted and removed to keep memory down.
     private static final long TASK_LIST_CLEANUP_THRESHOLD = 1000000L;
 
     // How many parallel tasks can run at one time.
-    private static final int THREAD_COUNT = 16;
+    private static final int THREAD_COUNT = 14;
 
     // Task list
     private final List<Future<Long>> taskList = new ArrayList<>((int) TASK_LIST_CLEANUP_THRESHOLD);
@@ -180,37 +179,40 @@ class CrankyCallable implements Callable<Long> {
     public Long call() throws InterruptedException {
         long value = 0L;
         for (long i = blockStart; i < blockStart + segmentSize; i++) {
-            value += isCranky(i);
+            value += isCrankyBlock(i);
         }
         return value;
     }
 
+    private int[] digitsToProcess;
 
-//    long firstHalf = 0L;
-//    long secondHalf;
-//    private     long digitToProcess;
-//    private long subtractor = 0L;
-
+    private void populateDigitArray(long num) {
+        char[] charArr = String.valueOf(num).toCharArray();
+        digitsToProcess = new int[charArr.length];
+        int index = 0;
+        for (char c : charArr) {
+            digitsToProcess[index++] = ((int) c) - 48;
+        }
+    }
 
     /**
      * @param num
      * @return
      */
-    private long isCranky(long num) {
+    private long isCrankyBlock(long num) {
         long reversedValue = getReversedNumber(num);
-
-        String numAsString = String.valueOf(num);
+        populateDigitArray(num);
 
         long firstHalf = 0L;
         long secondHalf;
         long digitToProcess;
         long subtractor = 0L;
 
-        int reverseIndex = numAsString.length() - 1;
-        for (long i = 0; i < numAsString.length(); i++) {
+        int reverseIndex = digitsToProcess.length - 1;
+        for (int i = 0; i < digitsToProcess.length; i++) {
 
             // Get the i'th digit.
-            digitToProcess = getDigitToProcess(numAsString, i);
+            digitToProcess = digitsToProcess[i];
 
             // Get the value to subtract from num to get b
             subtractor += (long) (digitToProcess * Math.pow(10, reverseIndex--));
@@ -219,19 +221,23 @@ class CrankyCallable implements Callable<Long> {
             firstHalf = findFirstHalf(firstHalf, digitToProcess, i);
 
             // get secondHalf
-            secondHalf = getSecondHalf (num, subtractor);
+            secondHalf = getSecondHalf(num, subtractor);
 
-            if (firstHalf * secondHalf == reversedValue) {
+            if (crankyCheck(firstHalf, secondHalf, reversedValue)) {
                 return num;
             }
         }
         return 0;
     }
 
-    private long getDigitToProcess(String numAsString, long i) {
-        char digit = numAsString.charAt((int)i);
-        return DIGIT_LOOKUP[((int)digit) - 48];
+    private boolean crankyCheck(long firstHalf, long secondHalf, long reversedValue) {
+        return (getMultiplication(firstHalf, secondHalf) == reversedValue);
     }
+
+    private long getMultiplication(long firstHalf, long secondHalf) {
+        return firstHalf * secondHalf;
+    }
+
 
     private long findFirstHalf(long firstHalf, long digitToProcess, long i) {
         if (firstHalf == 0L) {
@@ -241,8 +247,8 @@ class CrankyCallable implements Callable<Long> {
         }
     }
 
-    private long getSecondHalf (long num, long subtractor){
-     return num - subtractor;
+    private long getSecondHalf(long num, long subtractor) {
+        return num - subtractor;
     }
 
     /**
