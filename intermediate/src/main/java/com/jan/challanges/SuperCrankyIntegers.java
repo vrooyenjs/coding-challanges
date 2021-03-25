@@ -1,18 +1,16 @@
 package com.jan.challanges;
 
 import com.jan.interfaces.IChallange;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The integer 351 has the property that 3 x 51 = 153, the digit-reverse of 351.
@@ -29,10 +27,9 @@ import java.util.concurrent.Future;
 @Component
 @NoArgsConstructor
 public class SuperCrankyIntegers implements IChallange {
-    private ExecutorService executor;
 
-    private static final long SEGMENT_SIZE = 10000000L;
-    private static final long SEGMENT_BLOCKS = 1000000L;
+    private static final long BLOCK_DIVISION_SEGMENT_SIZE = 10000L;
+    private static final int THREAD_COUNT = 6;
 
 
     @Override
@@ -46,32 +43,27 @@ public class SuperCrankyIntegers implements IChallange {
         return 0L;
     }
 
-    private void initCache(long num) {
-        /*
-         * Init cache
-         */
-        long start = System.currentTimeMillis();
-        log.info("Starting cache load...");
-        for (long i = 0; i < num; i++) {
-            getLongFromCache(String.valueOf(i));
-        }
-        log.info("Starting cache load of {} entries in {} ms", num, (System.currentTimeMillis() - start));
-    }
 
     private long crankyInteger(long num) throws ExecutionException, InterruptedException {
-//        initCache(num);
 
-
-        executor = Executors.newFixedThreadPool(6);
+        ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT);
         long crankySum = 0L;
         List<Future<Long>> taskList = new LinkedList<>();
+
+        /*
+         * Determine Segments
+         */
+        long segmentSize = num;
+        while (segmentSize > BLOCK_DIVISION_SEGMENT_SIZE) {
+            segmentSize /= Math.floor(2);
+        }
+        // we now have the chuck size and we process blocks as per the chuck size.
+
 
         /*
          * The segments are partitioned by either the number of partitions or
          * standard block size....whichever one is larger.
          */
-        long segmentSize = Math.max(num / SEGMENT_BLOCKS, SEGMENT_SIZE);
-
         long blockStart = 0L;
         long blockSize;
         while (blockStart < num) {
@@ -82,11 +74,15 @@ public class SuperCrankyIntegers implements IChallange {
             } else {
                 blockSize = segmentSize;
             }
-//            log.info("Processing block: {}/{} -- size({})", blockStart, num, blockSize);
 
-            taskList.add(scheduleBlock(blockStart, blockSize));
+            taskList.add(executor.submit(new CrankyCallable(blockStart, blockSize)));
             blockStart += blockSize;
-            crankySum += countCompleted(taskList);
+
+            // we maar wait for the task list to finish processing each mod 10 items
+            if (taskList.size() > 0 && taskList.size() % segmentSize == 0) {
+//                log.info("Processing block: {}/{} -- {}%", blockStart, num, ((double) blockStart / (double) num * 100.00));
+                crankySum += countCompleted(taskList);
+            }
         }
         executor.shutdown();
 
@@ -107,58 +103,155 @@ public class SuperCrankyIntegers implements IChallange {
         return crankySum;
     }
 
-    private Future<Long> scheduleBlock(long blockStart, long segmentSize) {
-        return executor.submit(() -> {
-            long value = 0L;
-            for (long i = blockStart; i < blockStart + segmentSize; i++) {
-                value += isCranky(i);
-            }
-            return value;
-        });
-    }
-
 
     private long countCompleted(List<Future<Long>> taskList) throws ExecutionException, InterruptedException {
         List<Future<Long>> completedList = new LinkedList<>();
         long sum = 0L;
+
         for (Future<Long> task : taskList) {
             if (task.isDone()) {
                 sum += task.get();
                 completedList.add(task);
             }
         }
+
         taskList.removeAll(completedList);
+
         return sum;
     }
+}
 
+/**
+ *
+ */
+@Getter
+@Setter
+class CrankyCallable implements Callable<Long> {
+
+
+    private static Long[] DIGIT_LOOKUP;
+    private long blockStart;
+    private long segmentSize;
+
+
+    public CrankyCallable(long blockStart, long segmentSize) {
+        this.setBlockStart(blockStart);
+        this.setSegmentSize(segmentSize);
+        if (DIGIT_LOOKUP == null) {
+            initiateCache();
+        }
+    }
+
+    public synchronized void initiateCache() {
+        if (DIGIT_LOOKUP != null) {
+            return;
+
+        }
+        /*
+         ** Preload 0-9 longs
+         */
+        DIGIT_LOOKUP = new Long[10];
+        for (int i = 0; i < 10 ; i ++) {
+            DIGIT_LOOKUP[i] = (long)i;
+        }
+    }
+
+
+    @Override
+    public Long call() {
+        long value = 0L;
+        for (long i = blockStart; i < blockStart + segmentSize; i++) {
+            value += isCranky(i);
+        }
+        return value;
+    }
+
+
+    /**
+     * @param num
+     * @return
+     */
     private long isCranky(long num) {
-        String intValue = String.valueOf(num);
-        long reversedValue = getLongFromCache(new StringBuilder(intValue).reverse().toString());
+        long reversedValue = getReversedNumber(num);
 
-        for (int i = 1; i < intValue.length(); i++) {
+        String numAsString = String.valueOf(num);
 
-            long firstPart = getLongFromCache(intValue.substring(0, i));
-            long secondPart = getLongFromCache(intValue.substring(i));
-            if ((firstPart * secondPart) == reversedValue) {
+        long a = 0L;
+        long b;
+
+        long digitToProcess;
+        long subtractor = 0L;
+
+        int reverseIndex = numAsString.length() - 1;
+        for (int i = 0; i < numAsString.length(); i++) {
+
+            // Get the i'th digit.
+//            digitToProcess = Long.parseLong(String.valueOf(numAsString.charAt(i)));
+//            digitToProcess = DIGIT_LOOKUP.get(numAsString.charAt(i));
+            char digit = numAsString.charAt(i);
+            int index = Character.getNumericValue(digit);
+            digitToProcess = DIGIT_LOOKUP[index];
+
+            // Get the value to subtract from num to get b
+            subtractor += (long) (digitToProcess * Math.pow(10, reverseIndex--));
+
+
+            // get a
+            if (a == 0L) {
+                a = (long) (digitToProcess * Math.pow(10, i));
+            } else {
+                a = (long) (a * Math.pow(10, 1)) + digitToProcess;
+            }
+
+            // get b
+            b = num - subtractor;
+
+            long multiplication = a * b;
+            if (multiplication == reversedValue) {
                 return num;
             }
         }
-
         return 0;
     }
 
-
-    private static final Map<String, Long> LONG_CACHE = new HashMap<>();
-    private long getLongFromCache(String longAsString) {
-        Long longValue = LONG_CACHE.get(longAsString);
-
-        if (longValue == null) {
-            longValue = Long.parseLong(longAsString);
-            LONG_CACHE.put(longAsString, longValue);
+    /**
+     * @param value
+     * @return
+     */
+    private long getReversedNumber(long value) {
+        long reversedValue = 0L;
+        while (value != 0) {
+            reversedValue = reversedValue * 10;
+            reversedValue = reversedValue + value % 10;
+            value = value / 10;
         }
-        return longValue;
+        return reversedValue;
     }
 
 
-}
+    @Override
+    public boolean equals(Object obj) {
+        /*
+         * If the object is compared with itself then return true
+         */
+        if (obj == this) {
+            return true;
+        }
 
+        /*
+         * Check if o is an instance of Complex or not
+         * "null instanceof [type]" also returns false
+         */
+        if (!(obj instanceof Callable)) {
+            return false;
+        }
+
+        CrankyCallable c = (CrankyCallable) obj;
+        return c.getBlockStart() == this.getBlockStart() && c.getSegmentSize() == this.getSegmentSize();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(blockStart, segmentSize);
+    }
+}

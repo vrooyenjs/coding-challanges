@@ -9,8 +9,8 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>logs/intermediate/archive/beginner.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <!-- each archived file, size max 10MB -->
-            <maxFileSize>5MB</maxFileSize>
-            <totalSizeCap>10MB</totalSizeCap>
+            <maxFileSize>500MB</maxFileSize>
+            <totalSizeCap>2000MB</totalSizeCap>
             <!-- 60 days to keep -->
             <maxHistory>2</maxHistory>
         </rollingPolicy>
