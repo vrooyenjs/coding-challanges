@@ -43,6 +43,17 @@ class SuperCrankyIntegersTest {
         csvPrinter.flush();
     }
 
+//    @Test
+    void incrementalCacheBuilding() {
+        for (long i = 1000000L; i < 10000000000L + 5000000L; i += 5000000L) {
+            long start = System.currentTimeMillis();
+            superCrankyIntegers.execute(i);
+            long finish = (System.currentTimeMillis() - start);
+
+            log.info("Finished file: {} in {}ms", i, finish);
+        }
+    }
+
     //    @Test
     void testExecute_100l() {
         assertEquals(0L, (long) superCrankyIntegers.execute(100L));
@@ -63,24 +74,24 @@ class SuperCrankyIntegersTest {
         assertEquals(1858L, (long) superCrankyIntegers.execute(100000L));
     }
 
-    //    @Test
+    //        @Test
     void testExecute_1000000l() {
         assertEquals(1778723L, (long) superCrankyIntegers.execute(1000000L));
     }
 
-    @Test
+//        @Test
     void testExecute_10000000l() {
         assertEquals(5303474L, (long) superCrankyIntegers.execute(10000000L));
     }
 
 
-    //    @Test
+//        @Test
     void testExecute_100000000l() {
         assertEquals(139852339L, (long) superCrankyIntegers.execute(100000000L));
     }
 
 
-    //    @Test
+        @Test
     void testExecute_1000000000l() {
         assertEquals(598515851L, (long) superCrankyIntegers.execute(1000000000L));
     }

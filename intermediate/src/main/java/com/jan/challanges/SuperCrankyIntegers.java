@@ -26,7 +26,7 @@ import java.util.concurrent.*;
 public class SuperCrankyIntegers implements IChallange {
 
     // Controls into how many segments the initial blocks are split
-    public static final long BLOCK_DIVISION_SEGMENT_SIZE = 10000000L;
+    public static final long BLOCK_DIVISION_SEGMENT_SIZE = 1000000L;
 
     // How often the task list needs to be scanned and completed items counted and removed to keep memory down.
     private static final long TASK_LIST_CLEANUP_THRESHOLD = 1000000L;
@@ -67,6 +67,7 @@ public class SuperCrankyIntegers implements IChallange {
         if (USE_CACHE) {
             // If the number is well within the cache...
             if (crankyCacheManager.hasNumberBeenCached(num)) {
+//                crankyCacheManager.getCrankyIntegerSum(num);
                 return crankyCacheManager.getCrankyIntegerSum(num);
             }
 
@@ -110,7 +111,7 @@ public class SuperCrankyIntegers implements IChallange {
         return crankySum;
     }
 
-    private void scheduleTask(long blockStart, long blockSize) throws InterruptedException {
+    private void scheduleTask(long blockStart, long blockSize) {
 
         CrankyCallable crankyCallable = new CrankyCallable(blockStart, blockSize);
         crankyCallable.setCrankyCacheManager(crankyCacheManager);
@@ -214,17 +215,6 @@ class CrankyCallable implements Callable<Long> {
         return value;
     }
 
-//    private void saveProcessedBlock() {
-//        try {
-//            FileOutputStream fileOut = new FileOutputStream(crankyBlock.getFileName());
-//            ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
-//            objectOut.writeObject(crankyBlock);
-//            objectOut.close();
-//
-//        } catch (IOException e) {
-//            log.error("Unable to save block to disk due to: {}", ExceptionUtils.getRootCause(e), e);
-//        }
-//    }
 
     private int[] digitsToProcess;
 
@@ -237,10 +227,6 @@ class CrankyCallable implements Callable<Long> {
         }
     }
 
-    /**
-     * @param num
-     * @return
-     */
     private long isCrankyBlock(long num) {
         long reversedValue = getReversedNumber(num);
         populateDigitArray(num);
@@ -373,7 +359,7 @@ class CrankyCacheManager {
     public long getCrankyIntegerSum(long num) {
         long sum = 0L;
         for (CrankyBlock crankyBlock : crankyCache) {
-            if (crankyBlock.getBlockEnd() <= num && crankyBlock.hasCrankyNumbersInBlock()) {
+            if (crankyBlock.getBlockEnd() <= num) {
                 sum += crankyBlock.getCrankyIntegerSum(num);
             } else {
                 break;
@@ -492,12 +478,15 @@ class CrankyBlock implements Serializable {
         if (num > biggestCrankyNumberInBlock) {
             biggestCrankyNumberInBlock = num;
         }
+        if (!crankyNumbersFound.contains(num)) {
+            crankyNumbersFound.add(num);
+        }
     }
 
     public long getCrankyIntegerSum(long num) {
         long sum = 0L;
         for (long l : crankyNumbersFound) {
-            if (l < sum) {
+            if (l < num) {
                 sum += l;
             } else {
                 break;
