@@ -1,16 +1,13 @@
 package com.jan.challanges;
 
 import com.jan.interfaces.IChallange;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.io.*;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -26,11 +23,10 @@ import java.util.concurrent.*;
  */
 @Slf4j
 @Component
-@NoArgsConstructor
 public class SuperCrankyIntegers implements IChallange {
 
     // Controls into how many segments the initial blocks are split
-    private static final long BLOCK_DIVISION_SEGMENT_SIZE = 100000L;
+    private static final long BLOCK_DIVISION_SEGMENT_SIZE = 1000000L;
 
     // How often the task list needs to be scanned and completed items counted and removed to keep memory down.
     private static final long TASK_LIST_CLEANUP_THRESHOLD = 1000000L;
@@ -41,8 +37,18 @@ public class SuperCrankyIntegers implements IChallange {
     // Task list
     private final List<Future<Long>> taskList = new ArrayList<>((int) TASK_LIST_CLEANUP_THRESHOLD);
 
+    // Thread executor service
     private final ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT);
 
+    // Use file cache?
+    private final boolean USE_CACHE = true;
+
+    // File cache manager
+    private final CrankyCacheManager crankyCacheManager;
+
+    public SuperCrankyIntegers() {
+        crankyCacheManager = new CrankyCacheManager();
+    }
 
     @Override
     public Object execute(Object obj) {
@@ -51,35 +57,41 @@ public class SuperCrankyIntegers implements IChallange {
         } catch (ExecutionException | InterruptedException e) {
             e.printStackTrace();
         }
-
         return 0L;
     }
-
 
     private long crankyInteger(long num) throws ExecutionException, InterruptedException {
 
         long crankySum = 0L;
+        if (USE_CACHE) {
+            // If the number is well within the cache...
+            if (crankyCacheManager.hasNumberBeenCached(num)) {
+                return crankyCacheManager.getCrankyIntegerSum(num);
+            }
 
-        /*
-         * Determine Segments
-         */
-        long segmentSize = num;
-        while (segmentSize > BLOCK_DIVISION_SEGMENT_SIZE) {
-            segmentSize /= Math.floor(2);
+            // If the number is partially cached, we load cache up to _that_ point
+            else {
+
+                // This implies that we need to use the last block and fill it up as well...
+                crankySum = crankyCacheManager.getCacheCrankySum();
+
+            }
         }
-        // we now have the chuck size and we process blocks as per the chuck size.
-
 
         /*
          * The segments are partitioned by either the number of partitions or
          * standard block size....whichever one is larger.
          */
         long blockStart = 0L;
+        if (crankyCacheManager.getLastBlock() != null) {
+            blockStart = crankyCacheManager.getLastBlock().getBlockStart();
+        }
+
 
         while (blockStart < num) {
 
             // get the next block size
-            long blockSize = getBlockSize(num, blockStart, segmentSize);
+            long blockSize = getBlockSize(num, blockStart);
 
             scheduleTask(blockStart, blockSize);
             blockStart += blockSize;
@@ -110,12 +122,12 @@ public class SuperCrankyIntegers implements IChallange {
         taskList.add(executor.submit(new CrankyCallable(blockStart, blockSize)));
     }
 
-    private long getBlockSize(long num, long blockStart, long segmentSize) {
+    private long getBlockSize(long num, long blockStart) {
         // If the full segment goes over the num, we trim it down
-        if (blockStart + segmentSize > num) {
+        if (blockStart + SuperCrankyIntegers.BLOCK_DIVISION_SEGMENT_SIZE > num) {
             return num - blockStart;
         } else {
-            return segmentSize;
+            return SuperCrankyIntegers.BLOCK_DIVISION_SEGMENT_SIZE;
         }
     }
 
@@ -144,17 +156,22 @@ public class SuperCrankyIntegers implements IChallange {
 /**
  *
  */
+@Slf4j
 @Getter
 @Setter
 class CrankyCallable implements Callable<Long> {
     private static Long[] DIGIT_LOOKUP;
+    private CrankyBlock crankyBlock;
+
     private long blockStart;
     private long segmentSize;
-
 
     public CrankyCallable(long blockStart, long segmentSize) {
         this.setBlockStart(blockStart);
         this.setSegmentSize(segmentSize);
+
+        crankyBlock = new CrankyBlock(blockStart, segmentSize, (blockStart + segmentSize));
+
         if (DIGIT_LOOKUP == null) {
             initiateCache();
         }
@@ -179,9 +196,27 @@ class CrankyCallable implements Callable<Long> {
     public Long call() throws InterruptedException {
         long value = 0L;
         for (long i = blockStart; i < blockStart + segmentSize; i++) {
+            if (i < 10) {
+                continue;
+            }
             value += isCrankyBlock(i);
         }
+
+        // Write block to disk
+        saveProcessedBlock();
         return value;
+    }
+
+    private void saveProcessedBlock() {
+        try {
+            FileOutputStream fileOut = new FileOutputStream(crankyBlock.getFileName());
+            ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
+            objectOut.writeObject(crankyBlock);
+            objectOut.close();
+
+        } catch (IOException e) {
+            log.error("Unable to save block to disk due to: {}", ExceptionUtils.getRootCause(e), e);
+        }
     }
 
     private int[] digitsToProcess;
@@ -214,16 +249,25 @@ class CrankyCallable implements Callable<Long> {
             // Get the i'th digit.
             digitToProcess = digitsToProcess[i];
 
+
             // Get the value to subtract from num to get b
             subtractor += (long) (digitToProcess * Math.pow(10, reverseIndex--));
 
             // get firstHalf
             firstHalf = findFirstHalf(firstHalf, digitToProcess, i);
+            if (firstHalf == 0) {
+                continue;
+            }
 
             // get secondHalf
             secondHalf = getSecondHalf(num, subtractor);
+            if (secondHalf == 0) {
+                continue;
+            }
 
             if (crankyCheck(firstHalf, secondHalf, reversedValue)) {
+//                crankyBlock.getCrankyNumbersFound().add(num);
+                crankyBlock.addCrankyNumber(num);
                 return num;
             }
         }
@@ -290,5 +334,159 @@ class CrankyCallable implements Callable<Long> {
     @Override
     public int hashCode() {
         return Objects.hash(blockStart, segmentSize);
+    }
+}
+
+
+@Slf4j
+@Getter
+class CrankyCacheManager {
+
+    private final List<CrankyBlock> crankyCache;
+    private final Map<Long, CrankyBlock> blockStartCacheMap;
+    private final Map<Long, CrankyBlock> blockEndCacheMap;
+    private long min = Long.MAX_VALUE;
+    private long max = Long.MIN_VALUE;
+    private long cacheCrankySum;
+
+    public CrankyCacheManager() {
+        crankyCache = new ArrayList<>();
+        blockStartCacheMap = new HashMap<>();
+        blockEndCacheMap = new HashMap<>();
+        initialiseFileCache();
+    }
+
+    public CrankyBlock getLastBlock() {
+        if (crankyCache.isEmpty()) {
+            return null;
+        }
+        return crankyCache.get(crankyCache.size() - 1);
+    }
+
+    public boolean hasNumberBeenCached(long num) {
+        return num < getMax();
+    }
+
+    public long getCrankyIntegerSum(long num) {
+        long sum = 0L;
+        for (CrankyBlock crankyBlock : crankyCache) {
+            if (crankyBlock.getBlockEnd() < num && crankyBlock.hasCrankyNumbersInBlock()) {
+                sum += crankyBlock.getCrankyIntegerSum(num);
+            } else {
+                break;
+            }
+        }
+        return sum;
+    }
+
+    private void initialiseFileCache() {
+        File[] files = new File("./cache").listFiles();
+
+        if (files == null) {
+            // no cache has been created yet.
+            return;
+        }
+
+        for (File file : files) {
+            if (file.isFile()) {
+                CrankyBlock crankyBlock = readCrankyCacheBlock(file.getAbsolutePath());
+
+                if (crankyBlock != null) {
+                    cacheCrankySum += crankyBlock.getCrankyBlockSum();
+                    if (crankyBlock.getBlockStart() < min) {
+                        min = crankyBlock.getBlockStart();
+                        blockStartCacheMap.put(crankyBlock.getBlockStart(), crankyBlock);
+                    }
+                    if (crankyBlock.getBlockEnd() > max) {
+                        max = crankyBlock.getBlockEnd();
+                        blockEndCacheMap.put(crankyBlock.getBlockEnd(), crankyBlock);
+                    }
+
+                    crankyCache.add(readCrankyCacheBlock(file.getAbsolutePath()));
+                }
+            }
+        }
+        log.info("Found {} cache blocks!", crankyCache.size());
+    }
+
+    private CrankyBlock readCrankyCacheBlock(String filename) {
+        try {
+            ObjectInputStream oi = new ObjectInputStream(new FileInputStream(filename));
+
+            return (CrankyBlock) oi.readObject();
+
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+}
+
+
+@Getter
+@RequiredArgsConstructor()
+class CrankyBlock implements Serializable {
+    private static final long serialVersionUID = 290129995745497085L;
+
+    @NonNull
+    private final long blockStart;
+
+    @NonNull
+    private final long segmentSize;
+
+    @NonNull
+    private final long blockEnd;
+
+    private long crankyBlockSum;
+
+    @NonNull
+    private final List<Long> crankyNumbersFound = new ArrayList<>();
+
+    public String getFileName() {
+        return "./cache/" + getBlockStart() + "__" + getBlockEnd() + ".block";
+    }
+
+    public boolean hasCrankyNumbersInBlock() {
+        return !crankyNumbersFound.isEmpty();
+    }
+
+    public void addCrankyNumber(long num) {
+        crankyBlockSum += num;
+    }
+
+    public long getCrankyIntegerSum(long num) {
+        long sum = 0L;
+        for (long l : crankyNumbersFound) {
+            if (l < sum) {
+                sum += l;
+            } else {
+                break;
+            }
+        }
+        return sum;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CrankyBlock that = (CrankyBlock) o;
+        return blockStart == that.blockStart && segmentSize == that.segmentSize && Objects.equals(crankyNumbersFound, that.crankyNumbersFound);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(blockStart, segmentSize, crankyNumbersFound);
+    }
+
+    @Override
+    public String toString() {
+        return "CrankyBlock{" +
+                "blockStart=" + blockStart +
+                ", segmentSize=" + segmentSize +
+                ", blockEnd=" + blockEnd +
+                ", crankyNumbersFound=" + crankyNumbersFound +
+                '}';
     }
 }
