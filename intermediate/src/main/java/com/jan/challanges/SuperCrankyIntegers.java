@@ -66,19 +66,18 @@ public class SuperCrankyIntegers implements IChallange {
         long blockStart = 0L;
         if (USE_CACHE) {
             // If the number is well within the cache...
-//            if (crankyCacheManager.hasNumberBeenCached(num)) {
-//                return crankyCacheManager.getCrankyIntegerSum(num);
-//            }
-//
-//            // If the number is partially cached, we load cache up to _that_ point
-//            else {
-//
-//                // This implies that we need to use the last block and fill it up as well...
-//                crankySum = crankyCacheManager.getCacheCrankySum();
-//            }
-//            if (crankyCacheManager.getLastBlock() != null) {
-//                blockStart = crankyCacheManager.getLastBlock().getBlockStart();
-//            }
+            if (crankyCacheManager.hasNumberBeenCached(num)) {
+                return crankyCacheManager.getCrankyIntegerSum(num);
+            }
+
+            // If the number is partially cached, we load cache up to _that_ point
+            else {
+                // This implies that we need to use the last block and fill it up as well...
+                crankySum = crankyCacheManager.getCacheCrankySum();
+            }
+            if (crankyCacheManager.getLastBlock() != null) {
+                blockStart = crankyCacheManager.getLastBlock().getBlockStart();
+            }
         }
 
         while (blockStart < num) {
@@ -368,13 +367,13 @@ class CrankyCacheManager {
     }
 
     public boolean hasNumberBeenCached(long num) {
-        return num < getMax();
+        return num <= getMax();
     }
 
     public long getCrankyIntegerSum(long num) {
         long sum = 0L;
         for (CrankyBlock crankyBlock : crankyCache) {
-            if (crankyBlock.getBlockEnd() < num && crankyBlock.hasCrankyNumbersInBlock()) {
+            if (crankyBlock.getBlockEnd() <= num && crankyBlock.hasCrankyNumbersInBlock()) {
                 sum += crankyBlock.getCrankyIntegerSum(num);
             } else {
                 break;
@@ -415,6 +414,7 @@ class CrankyCacheManager {
         }
 
         for (CrankyBlock crankyBlock : crankyCache) {
+            cacheCrankySum += crankyBlock.getCrankyBlockSum();
             appendCrankyBlock(crankyBlock);
         }
 
@@ -423,15 +423,23 @@ class CrankyCacheManager {
 
     private void appendCrankyBlock(CrankyBlock crankyBlock) {
         if (crankyBlock != null) {
-//            cacheCrankySum += crankyBlock.getCrankyBlockSum();
             if (crankyBlock.getBlockStart() < min) {
                 min = crankyBlock.getBlockStart();
             }
             if (crankyBlock.getBlockEnd() > max) {
                 max = crankyBlock.getBlockEnd();
             }
-            // A
-            crankyCache.add(crankyBlock);
+
+            // if this block is in the list already...
+            if (crankyCache.contains(crankyBlock)) {
+                // we replace it...
+                crankyCache.set(crankyCache.indexOf(crankyBlock), crankyBlock);
+            } else {
+
+                // otherwise we append to the list.
+                crankyCache.add(crankyBlock);
+            }
+
         }
     }
 
@@ -503,7 +511,7 @@ class CrankyBlock implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         CrankyBlock that = (CrankyBlock) o;
-        return blockStart == that.blockStart && segmentSize == that.segmentSize && Objects.equals(crankyNumbersFound, that.crankyNumbersFound);
+        return blockStart == that.blockStart;
     }
 
     @Override
