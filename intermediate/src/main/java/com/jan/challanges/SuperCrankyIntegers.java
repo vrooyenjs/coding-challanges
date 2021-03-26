@@ -81,6 +81,7 @@ public class SuperCrankyIntegers implements IChallange {
             }
         }
 
+        crankyCacheManager.initWriter();
         while (blockStart < num) {
 
             // get the next block size
@@ -108,6 +109,7 @@ public class SuperCrankyIntegers implements IChallange {
             crankySum += task.get();
         }
 
+        crankyCacheManager.flush();
         return crankySum;
     }
 
@@ -334,6 +336,8 @@ class CrankyCallable implements Callable<Long> {
 @Getter
 class CrankyCacheManager {
     private static final String CACHE_NAME = "./cache/crankyIntegers.cache";
+    private FileOutputStream fileOut;
+    private ObjectOutputStream objectOut;
 
     private final List<CrankyBlock> crankyCache;
     private long min = Long.MAX_VALUE;
@@ -342,7 +346,18 @@ class CrankyCacheManager {
 
     public CrankyCacheManager() {
         crankyCache = new ArrayList<>();
+
         initialiseFileCache();
+    }
+
+    public void initWriter() {
+        try {
+            fileOut = new FileOutputStream(CACHE_NAME);
+            objectOut = new ObjectOutputStream(fileOut);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public CrankyBlock getLastBlock() {
@@ -352,6 +367,15 @@ class CrankyCacheManager {
         return crankyCache.get(crankyCache.size() - 1);
     }
 
+    public void flush() {
+        try {
+            objectOut.flush();
+            objectOut.close();
+        } catch (IOException e) {
+            log.error("Unable to flush and close cache ;_; -- ", e);
+        }
+    }
+
     public boolean hasNumberBeenCached(long num) {
         return num <= getMax();
     }
@@ -359,7 +383,7 @@ class CrankyCacheManager {
     public long getCrankyIntegerSum(long num) {
         long sum = 0L;
         for (CrankyBlock crankyBlock : crankyCache) {
-            if (crankyBlock.getBlockEnd() <= num) {
+            if (crankyBlock.getBlockStart() <= num) {
                 sum += crankyBlock.getCrankyIntegerSum(num);
             } else {
                 break;
@@ -376,10 +400,9 @@ class CrankyCacheManager {
         synchronized (LOCK_OBJECT) {
             appendCrankyBlock(crankyBlock);
             try {
-                FileOutputStream fileOut = new FileOutputStream(CACHE_NAME);
-                ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
+//                log.info("Flushing new cache to disk: {}", crankyBlock);
+
                 objectOut.writeObject(crankyCache);
-                objectOut.close();
 
             } catch (IOException e) {
                 log.error("Unable to save block to disk due to: {}", ExceptionUtils.getRootCause(e), e);

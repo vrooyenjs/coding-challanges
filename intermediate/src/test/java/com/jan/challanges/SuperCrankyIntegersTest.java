@@ -45,7 +45,7 @@ class SuperCrankyIntegersTest {
 
     //    @Test
     void incrementalCacheBuilding() {
-        for (long i = 1000000L; i < 10000000000L + 5000000L; i += 5000000L) {
+        for (long i = 0L; i < 100000000L + SuperCrankyIntegers.BLOCK_DIVISION_SEGMENT_SIZE; i += SuperCrankyIntegers.BLOCK_DIVISION_SEGMENT_SIZE) {
             long start = System.currentTimeMillis();
             superCrankyIntegers.execute(i);
             long finish = (System.currentTimeMillis() - start);
@@ -54,27 +54,27 @@ class SuperCrankyIntegersTest {
         }
     }
 
-//    @Test
+    //    @Test
     void testExecute_100l() {
         assertEquals(0L, (long) superCrankyIntegers.execute(100L));
     }
 
-    @Test
+    //    @Test
     void testExecute_1000l() {
         assertEquals(1858L, (long) superCrankyIntegers.execute(1000L));
     }
 
-//    @Test
+    //    @Test
     void testExecute_10000l() {
         assertEquals(1858L, (long) superCrankyIntegers.execute(10000L));
     }
 
-//    @Test
+    //    @Test
     void testExecute_100000l() {
         assertEquals(1858L, (long) superCrankyIntegers.execute(100000L));
     }
 
-//    @Test
+    //    @Test
     void testExecute_1000000l() {
         assertEquals(1778723L, (long) superCrankyIntegers.execute(1000000L));
     }
@@ -91,7 +91,7 @@ class SuperCrankyIntegersTest {
     }
 
 
-    //    @Test
+    @Test
     void testExecute_1000000000l() {
         assertEquals(598515851L, (long) superCrankyIntegers.execute(1000000000L));
     }
@@ -100,11 +100,12 @@ class SuperCrankyIntegersTest {
     void testExecute_X000000000l() {
         assertEquals(598515851L, (long) superCrankyIntegers.execute(2000000000L));
         assertEquals(2877944442L, (long) superCrankyIntegers.execute(3000000000L));
+        assertEquals(2877944442L, (long) superCrankyIntegers.execute(4000000000L));
     }
 
-    //    @Test
+        @Test
     void testExecute_10000000000l() {
-        assertEquals(598515851L, (long) superCrankyIntegers.execute(10000000000L));
+        assertEquals(20304631882L, (long) superCrankyIntegers.execute(10000000000L));
     }
 
     //        @Test
