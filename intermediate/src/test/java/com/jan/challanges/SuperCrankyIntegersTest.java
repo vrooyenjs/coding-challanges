@@ -63,7 +63,7 @@ class SuperCrankyIntegersTest {
         assertEquals(1858L, (long) superCrankyIntegers.execute(100000L));
     }
 
-    //            @Test
+    //    @Test
     void testExecute_1000000l() {
         assertEquals(1778723L, (long) superCrankyIntegers.execute(1000000L));
     }
@@ -81,9 +81,7 @@ class SuperCrankyIntegersTest {
 
 
     //    @Test
-    void testExecute_1000000000l() throws InterruptedException {
-//        System.out.println((int) '0' + " "  + (int)'9');
-        Thread.sleep(5000);
+    void testExecute_1000000000l() {
         assertEquals(598515851L, (long) superCrankyIntegers.execute(1000000000L));
     }
 

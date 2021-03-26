@@ -26,7 +26,7 @@ import java.util.concurrent.*;
 public class SuperCrankyIntegers implements IChallange {
 
     // Controls into how many segments the initial blocks are split
-    private static final long BLOCK_DIVISION_SEGMENT_SIZE = 1000000L;
+    public static final long BLOCK_DIVISION_SEGMENT_SIZE = 10000000L;
 
     // How often the task list needs to be scanned and completed items counted and removed to keep memory down.
     private static final long TASK_LIST_CLEANUP_THRESHOLD = 1000000L;
@@ -41,7 +41,7 @@ public class SuperCrankyIntegers implements IChallange {
     private final ExecutorService executor = Executors.newFixedThreadPool(THREAD_COUNT);
 
     // Use file cache?
-    private final boolean USE_CACHE = true;
+    private static final boolean USE_CACHE = true;
 
     // File cache manager
     private final CrankyCacheManager crankyCacheManager;
@@ -63,30 +63,23 @@ public class SuperCrankyIntegers implements IChallange {
     private long crankyInteger(long num) throws ExecutionException, InterruptedException {
 
         long crankySum = 0L;
+        long blockStart = 0L;
         if (USE_CACHE) {
             // If the number is well within the cache...
-            if (crankyCacheManager.hasNumberBeenCached(num)) {
-                return crankyCacheManager.getCrankyIntegerSum(num);
-            }
-
-            // If the number is partially cached, we load cache up to _that_ point
-            else {
-
-                // This implies that we need to use the last block and fill it up as well...
-                crankySum = crankyCacheManager.getCacheCrankySum();
-
-            }
+//            if (crankyCacheManager.hasNumberBeenCached(num)) {
+//                return crankyCacheManager.getCrankyIntegerSum(num);
+//            }
+//
+//            // If the number is partially cached, we load cache up to _that_ point
+//            else {
+//
+//                // This implies that we need to use the last block and fill it up as well...
+//                crankySum = crankyCacheManager.getCacheCrankySum();
+//            }
+//            if (crankyCacheManager.getLastBlock() != null) {
+//                blockStart = crankyCacheManager.getLastBlock().getBlockStart();
+//            }
         }
-
-        /*
-         * The segments are partitioned by either the number of partitions or
-         * standard block size....whichever one is larger.
-         */
-        long blockStart = 0L;
-        if (crankyCacheManager.getLastBlock() != null) {
-            blockStart = crankyCacheManager.getLastBlock().getBlockStart();
-        }
-
 
         while (blockStart < num) {
 
@@ -119,7 +112,14 @@ public class SuperCrankyIntegers implements IChallange {
     }
 
     private void scheduleTask(long blockStart, long blockSize) throws InterruptedException {
-        taskList.add(executor.submit(new CrankyCallable(blockStart, blockSize)));
+
+        CrankyCallable crankyCallable = new CrankyCallable(blockStart, blockSize);
+        crankyCallable.setCrankyCacheManager(crankyCacheManager);
+        if (crankyCacheManager.getLastBlock() != null && crankyCacheManager.getLastBlock().getCrankyBlockSum() == blockStart) {
+            crankyCallable.setCrankyBlock(crankyCacheManager.getLastBlock());
+        }
+
+        taskList.add(executor.submit(crankyCallable));
     }
 
     private long getBlockSize(long num, long blockStart) {
@@ -161,6 +161,7 @@ public class SuperCrankyIntegers implements IChallange {
 @Setter
 class CrankyCallable implements Callable<Long> {
     private static Long[] DIGIT_LOOKUP;
+    private CrankyCacheManager crankyCacheManager;
     private CrankyBlock crankyBlock;
 
     private long blockStart;
@@ -183,7 +184,7 @@ class CrankyCallable implements Callable<Long> {
 
         }
         /*
-         ** Preload 0-9 longs
+         ** Preload 0-9 longs FOR ULTIMATE SPEEEEED
          */
         DIGIT_LOOKUP = new Long[10];
         for (int i = 0; i < 10; i++) {
@@ -193,31 +194,38 @@ class CrankyCallable implements Callable<Long> {
 
 
     @Override
-    public Long call() throws InterruptedException {
+    public Long call() {
         long value = 0L;
         for (long i = blockStart; i < blockStart + segmentSize; i++) {
+            // We work our way to the end of the current block...
+            if (i < crankyBlock.getBiggestCrankyNumberInBlock()) {
+                continue;
+            }
+
             if (i < 10) {
                 continue;
             }
+
             value += isCrankyBlock(i);
         }
 
         // Write block to disk
-        saveProcessedBlock();
+        crankyCacheManager.appendToCrankyCache(crankyBlock);
+
         return value;
     }
 
-    private void saveProcessedBlock() {
-        try {
-            FileOutputStream fileOut = new FileOutputStream(crankyBlock.getFileName());
-            ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
-            objectOut.writeObject(crankyBlock);
-            objectOut.close();
-
-        } catch (IOException e) {
-            log.error("Unable to save block to disk due to: {}", ExceptionUtils.getRootCause(e), e);
-        }
-    }
+//    private void saveProcessedBlock() {
+//        try {
+//            FileOutputStream fileOut = new FileOutputStream(crankyBlock.getFileName());
+//            ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
+//            objectOut.writeObject(crankyBlock);
+//            objectOut.close();
+//
+//        } catch (IOException e) {
+//            log.error("Unable to save block to disk due to: {}", ExceptionUtils.getRootCause(e), e);
+//        }
+//    }
 
     private int[] digitsToProcess;
 
@@ -266,7 +274,6 @@ class CrankyCallable implements Callable<Long> {
             }
 
             if (crankyCheck(firstHalf, secondHalf, reversedValue)) {
-//                crankyBlock.getCrankyNumbersFound().add(num);
                 crankyBlock.addCrankyNumber(num);
                 return num;
             }
@@ -341,18 +348,15 @@ class CrankyCallable implements Callable<Long> {
 @Slf4j
 @Getter
 class CrankyCacheManager {
+    private static final String CACHE_NAME = "./cache/crankyIntegers.cache";
 
     private final List<CrankyBlock> crankyCache;
-    private final Map<Long, CrankyBlock> blockStartCacheMap;
-    private final Map<Long, CrankyBlock> blockEndCacheMap;
     private long min = Long.MAX_VALUE;
     private long max = Long.MIN_VALUE;
     private long cacheCrankySum;
 
     public CrankyCacheManager() {
         crankyCache = new ArrayList<>();
-        blockStartCacheMap = new HashMap<>();
-        blockEndCacheMap = new HashMap<>();
         initialiseFileCache();
     }
 
@@ -379,41 +383,63 @@ class CrankyCacheManager {
         return sum;
     }
 
-    private void initialiseFileCache() {
-        File[] files = new File("./cache").listFiles();
+    private static final Object LOCK_OBJECT = new Object();
 
-        if (files == null) {
+    public void appendToCrankyCache(CrankyBlock crankyBlock) {
+
+        // Persist to disk (one thread at a time)
+        synchronized (LOCK_OBJECT) {
+            appendCrankyBlock(crankyBlock);
+            try {
+                FileOutputStream fileOut = new FileOutputStream(CACHE_NAME);
+                ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
+                objectOut.writeObject(crankyCache);
+                objectOut.close();
+
+            } catch (IOException e) {
+                log.error("Unable to save block to disk due to: {}", ExceptionUtils.getRootCause(e), e);
+            }
+        }
+    }
+
+    private void initialiseFileCache() {
+        File cacheFile = new File(CACHE_NAME);
+
+        if (!cacheFile.exists()) {
             // no cache has been created yet.
             return;
         }
-
-        for (File file : files) {
-            if (file.isFile()) {
-                CrankyBlock crankyBlock = readCrankyCacheBlock(file.getAbsolutePath());
-
-                if (crankyBlock != null) {
-                    cacheCrankySum += crankyBlock.getCrankyBlockSum();
-                    if (crankyBlock.getBlockStart() < min) {
-                        min = crankyBlock.getBlockStart();
-                        blockStartCacheMap.put(crankyBlock.getBlockStart(), crankyBlock);
-                    }
-                    if (crankyBlock.getBlockEnd() > max) {
-                        max = crankyBlock.getBlockEnd();
-                        blockEndCacheMap.put(crankyBlock.getBlockEnd(), crankyBlock);
-                    }
-
-                    crankyCache.add(readCrankyCacheBlock(file.getAbsolutePath()));
-                }
-            }
+        List<CrankyBlock> crankyCache = readCrankyCacheBlock(cacheFile.getAbsolutePath());
+        if (crankyCache == null) {
+            return;
         }
-        log.info("Found {} cache blocks!", crankyCache.size());
+
+        for (CrankyBlock crankyBlock : crankyCache) {
+            appendCrankyBlock(crankyBlock);
+        }
+
+        log.info("Loaded file cache from {} with {} cranky blocks!", cacheFile.getAbsolutePath(), crankyCache.size());
     }
 
-    private CrankyBlock readCrankyCacheBlock(String filename) {
+    private void appendCrankyBlock(CrankyBlock crankyBlock) {
+        if (crankyBlock != null) {
+//            cacheCrankySum += crankyBlock.getCrankyBlockSum();
+            if (crankyBlock.getBlockStart() < min) {
+                min = crankyBlock.getBlockStart();
+            }
+            if (crankyBlock.getBlockEnd() > max) {
+                max = crankyBlock.getBlockEnd();
+            }
+            // A
+            crankyCache.add(crankyBlock);
+        }
+    }
+
+    private List<CrankyBlock> readCrankyCacheBlock(String filename) {
         try {
             ObjectInputStream oi = new ObjectInputStream(new FileInputStream(filename));
 
-            return (CrankyBlock) oi.readObject();
+            return (List<CrankyBlock>) oi.readObject();
 
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -440,6 +466,8 @@ class CrankyBlock implements Serializable {
 
     private long crankyBlockSum;
 
+    private long biggestCrankyNumberInBlock;
+
     @NonNull
     private final List<Long> crankyNumbersFound = new ArrayList<>();
 
@@ -453,6 +481,9 @@ class CrankyBlock implements Serializable {
 
     public void addCrankyNumber(long num) {
         crankyBlockSum += num;
+        if (num > biggestCrankyNumberInBlock) {
+            biggestCrankyNumberInBlock = num;
+        }
     }
 
     public long getCrankyIntegerSum(long num) {
