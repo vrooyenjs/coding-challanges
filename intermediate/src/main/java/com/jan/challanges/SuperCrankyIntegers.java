@@ -33,7 +33,7 @@ public class SuperCrankyIntegers implements IChallange {
     private static final long TASK_LIST_CLEANUP_THRESHOLD = 1000000L;
 
     // How many parallel tasks can run at one time.
-    private static final int THREAD_COUNT = 14;
+    private static final int THREAD_COUNT = 16;
 
     // Task list
     private final List<Future<Long>> taskList = new ArrayList<>((int) TASK_LIST_CLEANUP_THRESHOLD);
