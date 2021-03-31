@@ -22,8 +22,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * The sum of all cranky integers smaller than 10^6 is 1778723. What is the sum of all cranky integers smaller than 10^14?
  */
 @Slf4j
-class SuperCrankyIntegersTest {
-    IChallange superCrankyIntegers = new SuperCrankyIntegers();
+class SuperCrankyIntegersOldTest {
+    IChallange superCrankyIntegers = new SuperCrankyIntegers_Old();
 
     //        @Test
     void testExecute_for_graph() throws IOException {
@@ -45,7 +45,7 @@ class SuperCrankyIntegersTest {
 
     //    @Test
     void incrementalCacheBuilding() {
-        for (long i = 0L; i < 100000000L + SuperCrankyIntegers.BLOCK_DIVISION_SEGMENT_SIZE; i += SuperCrankyIntegers.BLOCK_DIVISION_SEGMENT_SIZE) {
+        for (long i = 0L; i < 100000000L + SuperCrankyIntegers_Old.BLOCK_DIVISION_SEGMENT_SIZE; i += SuperCrankyIntegers_Old.BLOCK_DIVISION_SEGMENT_SIZE) {
             long start = System.currentTimeMillis();
             superCrankyIntegers.execute(i);
             long finish = (System.currentTimeMillis() - start);

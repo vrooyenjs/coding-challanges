@@ -3,11 +3,13 @@ package com.jan.challanges;
 import com.jan.interfaces.IChallange;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.stereotype.Component;
 
-import java.io.*;
-import java.util.*;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.*;
 
 /**
@@ -24,7 +26,7 @@ import java.util.concurrent.*;
 @Slf4j
 @Component
 @NoArgsConstructor
-public class SuperCrankyIntegers implements IChallange {
+public class SuperCrankyIntegers_Old implements IChallange {
 
     // Controls into how many segments the initial blocks are split
     public static final long BLOCK_DIVISION_SEGMENT_SIZE = 1000000L;
@@ -95,10 +97,10 @@ public class SuperCrankyIntegers implements IChallange {
 
     private long getBlockSize(long num, long blockStart) {
         // If the full segment goes over the num, we trim it down
-        if (blockStart + SuperCrankyIntegers.BLOCK_DIVISION_SEGMENT_SIZE > num) {
+        if (blockStart + SuperCrankyIntegers_Old.BLOCK_DIVISION_SEGMENT_SIZE > num) {
             return num - blockStart;
         } else {
-            return SuperCrankyIntegers.BLOCK_DIVISION_SEGMENT_SIZE;
+            return SuperCrankyIntegers_Old.BLOCK_DIVISION_SEGMENT_SIZE;
         }
     }
 
@@ -225,6 +227,7 @@ class CrankyCallable implements Callable<Long> {
 
             if (crankyCheck(firstHalf, secondHalf, reversedValue)) {
                 crankyBlock.addCrankyNumber(num);
+                log.info("Cranky number ({})", num);
                 return num;
             }
         }
