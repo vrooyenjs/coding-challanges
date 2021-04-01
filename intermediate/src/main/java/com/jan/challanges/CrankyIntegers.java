@@ -95,7 +95,7 @@ class CrankyIntegerBlock implements Callable<Long> {
     private final long blockEnd;
 
     @Override
-    public Long call() throws Exception {
+    public Long call() {
         long currentNumber = getBlockStart();
         long crankySum = 0L;
         while (currentNumber < getBlockEnd()) {
@@ -137,12 +137,20 @@ class CrankyIntegerBlock implements Callable<Long> {
     }
 }
 
+/**
+ * Helper class to perform mathematic based integer operations
+ */
 class CrankyHelper {
 
     private static final int RETURN_DIGIT_AT = 0;
     private static final int RETURN_LEFT_OVER = 1;
 
-    // Get the number in reverse.
+    /**
+     * Function determines what the inputted number is in reverse.
+     *
+     * @param value Long value that will be reversed.
+     * @return Reversed value of the inputted value.
+     */
     protected static long getReversedNumber(long value) {
         long reversedValue = 0L;
         while (value != 0) {
@@ -153,26 +161,58 @@ class CrankyHelper {
         return reversedValue;
     }
 
-    // Find the digit at the given index.
+    /**
+     * Find the digit at the given index.
+     *
+     * @param number Input long value that will be used to search on.
+     * @param digitIndex Moving from left to right, the digit at index 'digitIndex' will be found
+     * @return Digit at index 'digitIndex' in number 'number' will be returned.
+     */
     protected static long findDigitAt(long number, int digitIndex) {
         return getSecondHalfOrDigitAt(RETURN_DIGIT_AT, number, digitIndex);
     }
 
-    // Determines how many digits are in the number
+    /**
+     * Determines how many digits are in the number
+     *
+     * @param number Input number
+     * @return The number of digits present in the inputted number parameter.
+     */
     protected static int findNumberOfDigits(long number) {
         return (int) (Math.log10(number) + 1);
     }
 
 
-    // Builds the 'first half' of digits
+    /**
+     * Builds the 'first half' of digits
+     *
+     * @param firstHalf The value of the current firstHalf
+     * @param digitAtIndex What digit to 'append' onto the current firstHalf
+     * @return Increases the current first half by a power of ten and appends the new digit.
+     */
     protected static long getFirstHalf(long firstHalf, int digitAtIndex) {
         return (digitAtIndex + (firstHalf * 10));
     }
 
+    /**
+     * Iterates of the number until cutting off at the desired digitIndex
+     *
+     * @param number Number to cut up
+     * @param digitIndex Digit index to chop the number in half
+     * @return TThe second half of the number once it's been chopped into two.
+     */
     protected static long getSecondHalf(long number, int digitIndex) {
         return getSecondHalfOrDigitAt(RETURN_LEFT_OVER, number, digitIndex);
     }
 
+    /**
+     * Function getSecondHalf and findDigitAt use the same functionality, but return different types.
+     *
+     * @param returnType Return the digitAt or return the second half of the number?
+     * @param number Inputter number to process with
+     * @param digitAtIndex What index to stop processing at
+     * @return Either the digit found at the index or the second half of the number once the index has been reached.
+     */
     private static long getSecondHalfOrDigitAt(int returnType, long number, int digitAtIndex) {
         long digitAt = -1L;
         long leftOver = number;
