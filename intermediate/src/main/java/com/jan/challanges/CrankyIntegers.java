@@ -138,7 +138,7 @@ class CrankyIntegerBlock implements Callable<Long> {
 }
 
 /**
- * Helper class to perform mathematic based integer operations
+ * Helper class to perform mathematics based integer operations
  */
 class CrankyHelper {
 
@@ -209,7 +209,7 @@ class CrankyHelper {
      * Function getSecondHalf and findDigitAt use the same functionality, but return different types.
      *
      * @param returnType Return the digitAt or return the second half of the number?
-     * @param number Inputter number to process with
+     * @param number Inputted number to process with
      * @param digitAtIndex What index to stop processing at
      * @return Either the digit found at the index or the second half of the number once the index has been reached.
      */
