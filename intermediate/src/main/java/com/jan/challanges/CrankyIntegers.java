@@ -41,6 +41,12 @@ public class CrankyIntegers implements IChallange {
         return getCrankySum((long) obj);
     }
 
+    /**
+     * Function used to break up the given integer number into blocks per CPU thread
+     * and given to an ExecutorService to process each block on a logical CPU core.
+     * @param higherNumber Integer to process up to.
+     * @return The sum of all cranky integers found up until and excluding the higherNumber value.
+     */
     private long getCrankySum(long higherNumber) {
         List<Future<Long>> taskList = new LinkedList<>();
 
@@ -85,6 +91,11 @@ public class CrankyIntegers implements IChallange {
     }
 }
 
+/**
+ * Callable processor class that will determine the sum of cranky integers
+ * in any given block of integers.
+ *
+ */
 @Slf4j
 @Getter
 @Setter
@@ -98,6 +109,8 @@ class CrankyIntegerBlock implements Callable<Long> {
     public Long call() {
         long currentNumber = getBlockStart();
         long crankySum = 0L;
+
+        // Iterate over the block of integers and test each integer for crankiness.
         while (currentNumber < getBlockEnd()) {
             log.debug("Running block{} and currentNumber{}", getBlockStart(), currentNumber);
 
@@ -112,11 +125,17 @@ class CrankyIntegerBlock implements Callable<Long> {
     }
 
 
+    /**
+     * Function used to process any given integer and determine if it can be
+     * classified as a cranky integer or not.
+     *
+     * @param number Integer to determine if it is a cranky integer or not.
+     * @return True if found to be a cranky number, false otherwise
+     */
     private boolean isCranky(long number) {
 
         long reversedNumber = CrankyHelper.getReversedNumber(number);
         int numberOfDigits = CrankyHelper.findNumberOfDigits(number);
-
         long firstHalf = 0L;
 
         log.debug("number({}) | reversedNumber({}) | numberOfDigits({})", number, reversedNumber, numberOfDigits);
