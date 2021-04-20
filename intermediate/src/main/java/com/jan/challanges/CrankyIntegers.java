@@ -48,6 +48,7 @@ public class CrankyIntegers implements IChallange {
     /**
      * Function used to break up the given integer number into blocks per CPU thread
      * and given to an ExecutorService to process each block on a logical CPU core.
+     *
      * @param higherNumber Integer to process up to.
      * @return The sum of all cranky integers found up until and excluding the higherNumber value.
      */
@@ -99,7 +100,6 @@ public class CrankyIntegers implements IChallange {
 /**
  * Callable processor class that will determine the sum of cranky integers
  * in any given block of integers.
- *
  */
 @Slf4j
 @Getter
@@ -120,7 +120,7 @@ class CrankyIntegerBlock implements Callable<Long> {
             log.debug("Running block{} and currentNumber{}", getBlockStart(), currentNumber);
 
             if (currentNumber >= 10L && isCranky(currentNumber)) {
-                    crankySum += currentNumber;
+                crankySum += currentNumber;
             }
 
             currentNumber++;
@@ -148,11 +148,9 @@ class CrankyIntegerBlock implements Callable<Long> {
             firstHalf = CrankyHelper.getFirstHalf(firstHalf, digitAtIndex);
             if (firstHalf > 0L && firstHalf != number) {
                 long secondHalf = CrankyHelper.getSecondHalf(number, i + 1);
-                if (secondHalf > 0L) {
-                    if ((firstHalf * secondHalf) == reversedNumber) {
-                        log.debug("** number({}) | reversedNumber({}) | numberOfDigits({}) | digitAtIndex({}) | firstHalf({}) | secondHalf({})", number, reversedNumber, numberOfDigits, digitAtIndex, firstHalf, secondHalf);
-                        return true;
-                    }
+                if (secondHalf > 0L && (firstHalf * secondHalf) == reversedNumber) {
+                    log.debug("** number({}) | reversedNumber({}) | numberOfDigits({}) | digitAtIndex({}) | firstHalf({}) | secondHalf({})", number, reversedNumber, numberOfDigits, digitAtIndex, firstHalf, secondHalf);
+                    return true;
                 }
             }
         }
@@ -164,6 +162,9 @@ class CrankyIntegerBlock implements Callable<Long> {
  * Helper class to perform mathematics based integer operations
  */
 class CrankyHelper {
+    private CrankyHelper(){
+        // No public constructor needed.
+    }
 
     private static final int RETURN_DIGIT_AT = 0;
     private static final int RETURN_LEFT_OVER = 1;
@@ -187,7 +188,7 @@ class CrankyHelper {
     /**
      * Find the digit at the given index.
      *
-     * @param number Input long value that will be used to search on.
+     * @param number     Input long value that will be used to search on.
      * @param digitIndex Moving from left to right, the digit at index 'digitIndex' will be found
      * @return Digit at index 'digitIndex' in number 'number' will be returned.
      */
@@ -209,7 +210,7 @@ class CrankyHelper {
     /**
      * Builds the 'first half' of digits
      *
-     * @param firstHalf The value of the current firstHalf
+     * @param firstHalf    The value of the current firstHalf
      * @param digitAtIndex What digit to 'append' onto the current firstHalf
      * @return Increases the current first half by a power of ten and appends the new digit.
      */
@@ -220,7 +221,7 @@ class CrankyHelper {
     /**
      * Iterates of the number until cutting off at the desired digitIndex
      *
-     * @param number Number to cut up
+     * @param number     Number to cut up
      * @param digitIndex Digit index to chop the number in half
      * @return TThe second half of the number once it's been chopped into two.
      */
@@ -231,8 +232,8 @@ class CrankyHelper {
     /**
      * Function getSecondHalf and findDigitAt use the same functionality, but return different types.
      *
-     * @param returnType Return the digitAt or return the second half of the number?
-     * @param number Inputted number to process with
+     * @param returnType   Return the digitAt or return the second half of the number?
+     * @param number       Inputted number to process with
      * @param digitAtIndex What index to stop processing at
      * @return Either the digit found at the index or the second half of the number once the index has been reached.
      */

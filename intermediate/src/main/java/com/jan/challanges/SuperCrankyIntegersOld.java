@@ -27,7 +27,7 @@ import java.util.concurrent.*;
 @Slf4j
 @Component
 @NoArgsConstructor
-public class SuperCrankyIntegers_Old implements IChallange {
+public class SuperCrankyIntegersOld implements IChallange {
 
     // Controls into how many segments the initial blocks are split
     public static final long BLOCK_DIVISION_SEGMENT_SIZE = 1000000L;
@@ -98,10 +98,10 @@ public class SuperCrankyIntegers_Old implements IChallange {
 
     private long getBlockSize(long num, long blockStart) {
         // If the full segment goes over the num, we trim it down
-        if (blockStart + SuperCrankyIntegers_Old.BLOCK_DIVISION_SEGMENT_SIZE > num) {
+        if (blockStart + SuperCrankyIntegersOld.BLOCK_DIVISION_SEGMENT_SIZE > num) {
             return num - blockStart;
         } else {
-            return SuperCrankyIntegers_Old.BLOCK_DIVISION_SEGMENT_SIZE;
+            return SuperCrankyIntegersOld.BLOCK_DIVISION_SEGMENT_SIZE;
         }
     }
 
@@ -132,7 +132,7 @@ public class SuperCrankyIntegers_Old implements IChallange {
 @Getter
 @Setter
 class CrankyCallable implements Callable<Long> {
-    private static Long[] DIGIT_LOOKUP;
+    private static Long[] DIGITLOOKUP;
     private CrankyBlock crankyBlock;
 
     private long blockStart;
@@ -144,22 +144,22 @@ class CrankyCallable implements Callable<Long> {
 
         crankyBlock = new CrankyBlock(blockStart, segmentSize, (blockStart + segmentSize));
 
-        if (DIGIT_LOOKUP == null) {
+        if (DIGITLOOKUP == null) {
             initiateCache();
         }
     }
 
     public synchronized void initiateCache() {
-        if (DIGIT_LOOKUP != null) {
+        if (DIGITLOOKUP != null) {
             return;
 
         }
         /*
          ** Preload 0-9 longs FOR ULTIMATE SPEEEEED
          */
-        DIGIT_LOOKUP = new Long[10];
+        DIGITLOOKUP = new Long[10];
         for (int i = 0; i < 10; i++) {
-            DIGIT_LOOKUP[i] = (long) i;
+            DIGITLOOKUP[i] = (long) i;
         }
     }
 

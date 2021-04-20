@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
 class SuperCrankyIntegersOldTest {
-    IChallange superCrankyIntegers = new SuperCrankyIntegers_Old();
+    IChallange superCrankyIntegers = new SuperCrankyIntegersOld();
 
     //        @Test
     void testExecute_for_graph() throws IOException {
@@ -39,7 +39,7 @@ class SuperCrankyIntegersOldTest {
 
     //    @Test
     void incrementalCacheBuilding() {
-        for (long i = 0L; i < 100000000L + SuperCrankyIntegers_Old.BLOCK_DIVISION_SEGMENT_SIZE; i += SuperCrankyIntegers_Old.BLOCK_DIVISION_SEGMENT_SIZE) {
+        for (long i = 0L; i < 100000000L + SuperCrankyIntegersOld.BLOCK_DIVISION_SEGMENT_SIZE; i += SuperCrankyIntegersOld.BLOCK_DIVISION_SEGMENT_SIZE) {
             long start = System.currentTimeMillis();
             superCrankyIntegers.execute(i);
             long finish = (System.currentTimeMillis() - start);
