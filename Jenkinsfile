@@ -7,14 +7,13 @@ pipeline {
     }
 
     options  {
-        buildDiscarder(logRotator(artifactDaysToKeepStr: '10', artifactNumToKeepStr: '10', daysToKeepStr: '10', numToKeepStr: '10'))
+        buildDiscarder(logRotator(artifactDaysToKeepStr: '30', artifactNumToKeepStr: '30', daysToKeepStr: '30', numToKeepStr: '30'))
         disableConcurrentBuilds()
         disableResume()
     }
 
     triggers {
         pollSCM('H/5 * * * *')
-        cron('H/10 * * * *')
     }
 
     stages {
