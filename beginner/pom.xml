@@ -18,7 +18,6 @@
     <properties>
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/../${aggregate.report.dir}</sonar.coverage.jacoco.xmlReportPaths>
     </properties>
-
     <dependencies>
         <dependency>
             <groupId>com.spies</groupId>
@@ -26,15 +25,4 @@
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
-
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
-    </build>
-
 </project>
