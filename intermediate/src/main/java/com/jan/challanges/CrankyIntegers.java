@@ -43,6 +43,7 @@ public class CrankyIntegers implements IChallange {
         } catch (ExecutionException | InterruptedException e) {
             // Restore interrupted state...
             Thread.currentThread().interrupt();
+            return 0L;
         }
     }
 
