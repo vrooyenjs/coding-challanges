@@ -32,7 +32,7 @@ public class LoggingAspect {
         log.info("{}.{} - Starting", packageName, methodName);
         long start = System.currentTimeMillis();
 
-        Object obj = null;
+        Object obj;
         try {
             obj = proceedingJoinPoint.proceed();
         } catch (Throwable throwable) {

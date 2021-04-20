@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Slf4j
-public class CrankyIntegersTest {
+class CrankyIntegersTest {
 
     private static CrankyIntegers crankyIntegers;
 

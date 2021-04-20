@@ -8,9 +8,6 @@ import org.springframework.stereotype.Component;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Slf4j
-@Component
-@NoArgsConstructor
 class CrowdedCarriageCapacityTest {
     IChallange crowdedCarriageCapacity = new CrowdedCarriageCapacity();
 

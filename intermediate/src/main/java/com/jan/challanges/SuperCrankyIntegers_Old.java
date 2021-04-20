@@ -169,11 +169,7 @@ class CrankyCallable implements Callable<Long> {
         long value = 0L;
         for (long i = blockStart; i < blockStart + segmentSize; i++) {
             // We work our way to the end of the current block...
-            if (i < crankyBlock.getBiggestCrankyNumberInBlock()) {
-                continue;
-            }
-
-            if (i < 10) {
+            if (i < crankyBlock.getBiggestCrankyNumberInBlock() || i < 10) {
                 continue;
             }
 
@@ -216,13 +212,9 @@ class CrankyCallable implements Callable<Long> {
 
             // get firstHalf
             firstHalf = findFirstHalf(firstHalf, digitToProcess, i);
-            if (firstHalf == 0) {
-                continue;
-            }
-
             // get secondHalf
             secondHalf = getSecondHalf(num, subtractor);
-            if (secondHalf == 0) {
+            if (firstHalf == 0 || secondHalf == 0) {
                 continue;
             }
 

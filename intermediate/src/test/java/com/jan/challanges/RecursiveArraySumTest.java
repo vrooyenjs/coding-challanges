@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
-public class RecursiveArraySumTest {
+class RecursiveArraySumTest {
     IChallange recursiveArraySum = new RecursiveArraySum();
 
     @Test

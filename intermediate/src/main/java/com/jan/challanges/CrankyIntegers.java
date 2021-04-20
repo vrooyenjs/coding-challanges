@@ -90,7 +90,7 @@ public class CrankyIntegers implements IChallange {
 
             log.debug("Current list size: {}", taskList.size());
             completedList.clear();
-        } while (taskList.size() > 0);
+        } while (!taskList.isEmpty());
 
         return crankySum;
     }
@@ -119,11 +119,10 @@ class CrankyIntegerBlock implements Callable<Long> {
         while (currentNumber < getBlockEnd()) {
             log.debug("Running block{} and currentNumber{}", getBlockStart(), currentNumber);
 
-            if (currentNumber >= 10L) {
-                if (isCranky(currentNumber)) {
+            if (currentNumber >= 10L && isCranky(currentNumber)) {
                     crankySum += currentNumber;
-                }
             }
+
             currentNumber++;
         }
         return crankySum;

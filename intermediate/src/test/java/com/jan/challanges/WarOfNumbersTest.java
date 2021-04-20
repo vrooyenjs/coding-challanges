@@ -8,12 +8,10 @@ import org.springframework.stereotype.Component;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Slf4j
-@Component
-@NoArgsConstructor
-public class WarOfNumbersTest {
+class WarOfNumbersTest {
 
     IChallange warOfNumbers = new WarOfNumbers();
+
     @Test
     void testExecute (){
         assertEquals(2, warOfNumbers.execute(new int[]{2, 8, 7, 5}));
