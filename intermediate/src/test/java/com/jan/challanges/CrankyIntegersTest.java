@@ -19,35 +19,35 @@ public class CrankyIntegersTest {
     }
 
 
-    @Test
+    //    @Test
     void testExecute_10_2() {
         // ~ 1.45 ms
         log.info("***************************************** Starting test");
         assertEquals(0L, (long) crankyIntegers.execute(100L));
     }
 
-    @Test
+    //    @Test
     void testExecute_10_3() {
         // < 1.5 ms
         log.info("***************************************** Starting test");
         assertEquals(1858L, (long) crankyIntegers.execute(1000L));
     }
 
-    @Test
+    //    @Test
     void testExecute_10_4() {
         // ~ 5 ms
         log.info("***************************************** Starting test");
         assertEquals(1858L, (long) crankyIntegers.execute(10000L));
     }
 
-    @Test
+    //    @Test
     void testExecute_10_5() {
         // ~11 ms
         log.info("***************************************** Starting test");
         assertEquals(1858L, (long) crankyIntegers.execute(100000L));
     }
 
-    @Test
+    //    @Test
     void testExecute_10_6() {
         // ~90 ms
         log.info("***************************************** Starting test");
@@ -63,6 +63,7 @@ public class CrankyIntegersTest {
 
     //    @Test
     void testExecute_10_8() {
+        // ~13 000 ms
         log.info("***************************************** Starting test");
         assertEquals(139852339L, (long) crankyIntegers.execute(100000000L));
     }
