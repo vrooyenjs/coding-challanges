@@ -134,7 +134,7 @@ public class SuperCrankyIntegersOld implements IChallange {
 @Getter
 @Setter
 class CrankyCallable implements Callable<Long> {
-    private static Long[] DIGITLOOKUP;
+    private static Long[] digitlookup;
     private CrankyBlock crankyBlock;
 
     private long blockStart;
@@ -146,22 +146,22 @@ class CrankyCallable implements Callable<Long> {
 
         crankyBlock = new CrankyBlock(blockStart, segmentSize, (blockStart + segmentSize));
 
-        if (DIGITLOOKUP == null) {
+        if (digitlookup == null) {
             initiateCache();
         }
     }
 
     public synchronized void initiateCache() {
-        if (DIGITLOOKUP != null) {
+        if (digitlookup != null) {
             return;
 
         }
         /*
          ** Preload 0-9 longs FOR ULTIMATE SPEEEEED
          */
-        DIGITLOOKUP = new Long[10];
+        digitlookup = new Long[10];
         for (int i = 0; i < 10; i++) {
-            DIGITLOOKUP[i] = (long) i;
+            digitlookup[i] = (long) i;
         }
     }
 
