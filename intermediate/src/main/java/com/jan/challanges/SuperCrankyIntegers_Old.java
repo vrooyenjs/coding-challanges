@@ -3,6 +3,7 @@ package com.jan.challanges;
 import com.jan.interfaces.IChallange;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
@@ -52,7 +53,7 @@ public class SuperCrankyIntegers_Old implements IChallange {
         try {
             return crankyInteger((long) obj);
         } catch (ExecutionException | InterruptedException e) {
-            e.printStackTrace();
+            log.error("Exception occurred, due to: {}", ExceptionUtils.getRootCauseMessage(e), e);
         }
         return 0L;
     }
