@@ -41,7 +41,8 @@ public class CrankyIntegers implements IChallange {
         try {
             return getCrankySum((long) obj);
         } catch (ExecutionException | InterruptedException e) {
-            return 0L;
+            // Restore interrupted state...
+            Thread.currentThread().interrupt();
         }
     }
 
