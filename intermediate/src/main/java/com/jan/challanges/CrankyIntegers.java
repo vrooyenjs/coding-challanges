@@ -38,7 +38,11 @@ public class CrankyIntegers implements IChallange {
 
     @Override
     public Object execute(Object obj) {
-        return getCrankySum((long) obj);
+        try {
+            return getCrankySum((long) obj);
+        } catch (ExecutionException | InterruptedException e) {
+            return 0L;
+        }
     }
 
     /**
@@ -47,7 +51,7 @@ public class CrankyIntegers implements IChallange {
      * @param higherNumber Integer to process up to.
      * @return The sum of all cranky integers found up until and excluding the higherNumber value.
      */
-    private long getCrankySum(long higherNumber) {
+    private long getCrankySum(long higherNumber) throws ExecutionException, InterruptedException {
         List<Future<Long>> taskList = new LinkedList<>();
 
         long blockInterval = (long) Math.ceil((double) higherNumber / THREAD_COUNT);
@@ -79,6 +83,7 @@ public class CrankyIntegers implements IChallange {
                     }
                 } catch (InterruptedException | ExecutionException e) {
                     log.error("An error occurred while getting the future task completed value, {}", ExceptionUtils.getRootCauseMessage(e), e);
+                    throw e;
                 }
             }
             taskList.removeAll(completedList);
