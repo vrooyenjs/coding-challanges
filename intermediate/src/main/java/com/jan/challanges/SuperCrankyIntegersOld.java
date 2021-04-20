@@ -54,6 +54,8 @@ public class SuperCrankyIntegersOld implements IChallange {
             return crankyInteger((long) obj);
         } catch (ExecutionException | InterruptedException e) {
             log.error("Exception occurred, due to: {}", ExceptionUtils.getRootCauseMessage(e), e);
+            // Restore interrupted state...
+            Thread.currentThread().interrupt();
         }
         return 0L;
     }
