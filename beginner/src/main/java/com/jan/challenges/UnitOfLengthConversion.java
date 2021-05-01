@@ -56,7 +56,6 @@ public class UnitOfLengthConversion implements IChallange {
     }
 
     private double convert(int convertFrom, int convertTo, double input) {
-
         return CONVERSION_LOOKUP[convertFrom][convertTo] * input;
     }
 }
