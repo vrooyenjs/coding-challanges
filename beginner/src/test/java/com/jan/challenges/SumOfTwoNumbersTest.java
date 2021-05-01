@@ -23,17 +23,8 @@ class SumOfTwoNumbersTest {
 
     @Test
     void testExecute_valid3() {
+
         assertEquals(10, sumOfTwoNumbers.execute(new int[]{7, 3}));
     }
 
-    @Test
-    void testExecute_valid_random_test() {
-        Random random = new Random();
-
-        int a = random.nextInt();
-        int b = random.nextInt();
-        int sum = a + b;
-
-        assertEquals(sum, sumOfTwoNumbers.execute(new int[]{a, b}));
-    }
 }
