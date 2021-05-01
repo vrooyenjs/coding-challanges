@@ -1,6 +1,9 @@
 package com.jan.challanges;
 
 import com.jan.interfaces.IChallange;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 /**
  * Write a function that reverses a string. Make your function recursive.
@@ -19,6 +22,9 @@ import com.jan.interfaces.IChallange;
  * For non-base cases, your function must call itself at least once.
  * Check the Resources tab for info on recursion.
  */
+@Slf4j
+@Component
+@NoArgsConstructor
 public class RecursiveReverseString implements IChallange {
     @Override
     public Object execute(Object obj) {
