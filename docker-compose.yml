@@ -2,6 +2,41 @@
 version: '3.8'
 services:
 
+  # Wiki JS
+  # Database
+  wiki_db:
+    container_name: wiki_db
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'wiki'
+      MYSQL_USER: 'wikijs'
+      MYSQL_PASSWORD: '43eaac4a2006cade0d9db6051667ee8ef0240bde'
+      MYSQL_ROOT_PASSWORD: 'password'
+    ports:
+      - 3306:3306
+    expose:
+      - 3306
+    volumes:
+      - /data/wiki_db:/var/lib/mysql
+
+  # Application
+  wiki_js:
+    container_name: wiki_js
+    image: requarks/wiki:2
+    depends_on:
+      - wiki_db
+    environment:
+      DB_TYPE: mysql
+      DB_HOST: wiki_db
+      DB_PORT: 3306
+      DB_USER: wikijs
+      DB_PASS: 43eaac4a2006cade0d9db6051667ee8ef0240bde
+      DB_NAME: wiki
+    restart: unless-stopped
+    ports:
+      - 80:3000
+
   # Jenkins Build Server
   # sonarqube key: 43eaac4a2006cade0d9db6051667ee8ef0240bde
   jenkins:
@@ -48,8 +83,9 @@ services:
         soft: 32000
         hard: 40000
 
+#    # admin / 1bD33585-b761-4635-9b8A-eb97f0c0bd98
+
   sonarqube:
-    # admin / 1bD33585-b761-4635-9b8A-eb97f0c0bd98
     image: sonarqube:community
     container_name: sonarqube
     depends_on:
